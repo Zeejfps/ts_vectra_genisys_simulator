@@ -65,6 +65,12 @@ device.onBeep = (kind) => beeper.play(kind);
 
 if (import.meta.env.DEV) Object.assign(window, { device });
 
+// Offline support so the app works once installed. Skipped in dev, where the
+// cache would serve stale modules.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+}
+
 const view = new DeviceView(app.querySelector('.stage')!, device);
 const scope = new Scope(app.querySelector('.scope')!, device);
 
