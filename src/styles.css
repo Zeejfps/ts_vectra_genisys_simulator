@@ -1093,3 +1093,65 @@ details summary {
     min-height: 44px;
   }
 }
+
+/* ---------- about ---------- */
+
+.noscript {
+  margin: 40px 16px;
+  text-align: center;
+}
+
+.about {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px max(16px, env(safe-area-inset-left)) calc(48px + env(safe-area-inset-bottom));
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.about h2 {
+  margin: 32px 0 8px;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+}
+
+.about section:first-child h2 {
+  margin-top: 0;
+}
+
+.about h3 {
+  margin: 18px 0 4px;
+  font-size: 15px;
+}
+
+.about p,
+.about ul,
+.about dl {
+  margin: 0 0 10px;
+}
+
+.about ul {
+  padding-left: 20px;
+}
+
+.about dt {
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+.about dd {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.about .disclaimer {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--panel-border);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.panel-head a {
+  color: var(--accent);
+}

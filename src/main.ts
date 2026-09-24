@@ -12,7 +12,7 @@ app.innerHTML = `
   <aside class="panel">
     <header class="panel-head">
       <h1>Vectra Genisys Simulator <span class="version">${__APP_VERSION__}</span></h1>
-      <p>Interactive replica of the Vectra Genisys electrotherapy interface. Unofficial, for training and exploration only. Not a medical device.</p>
+      <p>Interactive replica of the Vectra Genisys electrotherapy interface. Unofficial, for training and exploration only. Not a medical device. <a href="#about">About &amp; FAQ</a></p>
     </header>
 
     <section class="panel-card unit">
