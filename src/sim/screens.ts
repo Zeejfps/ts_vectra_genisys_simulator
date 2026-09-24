@@ -361,7 +361,7 @@ function utilitiesScreen(d: Device, m: ScreenModel): ScreenModel {
         'Ultrasound Board:  Not Installed',
         'sEMG Module:  Not Installed',
         '',
-        'Vectra Genisys Simulator',
+        `Vectra Genisys Simulator ${__APP_VERSION__}`,
         'For training and exploration only.',
         'Not a medical device.',
       ],

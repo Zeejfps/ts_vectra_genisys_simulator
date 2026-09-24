@@ -11,7 +11,7 @@ app.innerHTML = `
   <main class="stage" aria-label="Vectra Genisys unit"></main>
   <aside class="panel">
     <header class="panel-head">
-      <h1>Vectra Genisys Simulator</h1>
+      <h1>Vectra Genisys Simulator <span class="version">${__APP_VERSION__}</span></h1>
       <p>Interactive replica of the Vectra Genisys electrotherapy interface. Unofficial, for training and exploration only. Not a medical device.</p>
     </header>
 
