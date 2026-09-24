@@ -1,42 +1,53 @@
 import type { Device } from '../sim/device';
+import {
+  DEVICE_H,
+  DEVICE_W,
+  HOUSING_SVG,
+  KNOB,
+  LCD_X,
+  LCD_Y,
+  ROW_Y,
+  THERAPY_KEYS,
+  THERAPY_KEY_SIZE,
+  bezelEdgeX,
+  leafKeySvg,
+  lensKeySvg,
+  pillKeySvg,
+  softKeySvg,
+} from './housing';
 import { BACK_GLYPH, HOME_GLYPH, LIBRARY_GLYPH } from './icons';
 import { renderLcd } from './lcd';
 
 // The physical unit: housing, soft keys, hardware buttons and intensity knob.
-// Everything is laid out on a fixed 620 x 980 canvas and scaled to fit.
+// Everything is laid out on a fixed canvas (see housing.ts) and scaled to fit.
 
-export const DEVICE_W = 620;
-export const DEVICE_H = 980;
 /** Knob rotation (degrees) per detent. */
 const DEGREES_PER_DETENT = 12;
 
+const place = (cx: number, cy: number, w: number, h: number, rot = 0) =>
+  `left:${cx - w / 2}px;top:${cy - h / 2}px;width:${w}px;height:${h}px;${rot ? `rotate:${rot}deg;` : ''}`;
+
+function therapyKey(key: keyof typeof THERAPY_KEYS, label: string, title: string): string {
+  const { cx, cy, rot } = THERAPY_KEYS[key];
+  const { w, h } = THERAPY_KEY_SIZE;
+  return `<button class="tb" data-hw="${key}" style="${place(cx, cy, w, h, rot)}" title="${title}">${pillKeySvg(label)}</button>`;
+}
+
 const TEMPLATE = `
-  <div class="housing-lower">
-    <div class="front-panel"><span class="fp-slot"></span><span class="fp-dot"></span><span class="fp-slot"></span></div>
-  </div>
-  <div class="housing-upper">
-    <div class="card-slot" title="Patient Data Card port"></div>
-  </div>
-  <div class="bezel">
-    <div class="bezel-logo"><span class="logo-mark"></span><span class="logo-text">CHATTANOOGA<br><small>GROUP</small></span></div>
-    <div class="lcd-frame"><div class="lcd" data-kind="off"></div></div>
-    <div class="bezel-brand">Vectra<sup>®</sup><br><span>GEN<i>I</i>SYS</span></div>
-    <div class="power-led" title="Unit on indicator"></div>
-  </div>
-  <div class="softkeys left"></div>
-  <div class="softkeys right"></div>
-  <button class="hw hw-home" data-hw="home" aria-label="Home" title="Home (H)">${HOME_GLYPH}</button>
-  <button class="hw hw-back" data-hw="back" aria-label="Back" title="Back (B)">${BACK_GLYPH}</button>
-  <button class="hw hw-library" data-hw="library" aria-label="Clinical Resources Library" title="Clinical Resources Library (L)">${LIBRARY_GLYPH}</button>
-  <div class="therapy-buttons">
-    <span class="tb-sym tb-sym-stop"></span><button class="tb tb-stop" data-hw="stop" title="Stop (X)">STOP</button>
-    <span class="tb-sym tb-sym-pause"></span><button class="tb tb-pause" data-hw="pause" title="Pause (P)">PAUSE</button>
-    <span class="tb-sym tb-sym-start"></span><button class="tb tb-start" data-hw="start" title="Start (S)">START</button>
-  </div>
-  <div class="knob-well">
-    <div class="knob" role="slider" tabindex="0" aria-label="Intensity knob" title="Intensity: drag, scroll, or use the arrow keys">
-      <div class="knob-grip"></div>
-    </div>
+  ${HOUSING_SVG}
+  <div class="bezel-logo" style="${place(360, 72, 260, 34)}"><span class="logo-mark"></span><span class="logo-text">chattanooga</span></div>
+  <div class="lcd" data-kind="off" style="left:${LCD_X}px;top:${LCD_Y}px"></div>
+  <div class="bezel-brand" style="${place(360, 668, 200, 44)}">Vectra<sup>®</sup><br><span>GEN<i>I</i>SYS</span></div>
+  <div class="power-led" style="${place(360, 742, 16, 4)}" title="Unit on indicator"></div>
+  <div class="softkeys"></div>
+  <button class="hw" data-hw="home" style="${place(214, 733, 142, 64)}" aria-label="Home" title="Home (H)">${leafKeySvg(false, HOME_GLYPH)}</button>
+  <button class="hw" data-hw="back" style="${place(506, 733, 142, 64)}" aria-label="Back" title="Back (B)">${leafKeySvg(true, BACK_GLYPH)}</button>
+  <button class="hw" data-hw="library" style="${place(360, 786, 178, 50)}" aria-label="Clinical Resources Library" title="Clinical Resources Library (L)">${lensKeySvg(LIBRARY_GLYPH)}</button>
+  ${therapyKey('stop', 'STOP', 'Stop (X)')}
+  ${therapyKey('pause', 'PAUSE', 'Pause (P)')}
+  ${therapyKey('start', 'START', 'Start (S)')}
+  <div class="knob" style="${place(KNOB.cx, KNOB.cy, KNOB.r * 2, KNOB.r * 2)}" role="slider" tabindex="0" aria-label="Intensity knob" title="Intensity: drag, scroll, or use the arrow keys">
+    <div class="knob-grip"></div>
   </div>
 `;
 
@@ -87,15 +98,19 @@ export class DeviceView {
   }
 
   private buildSoftKeys(): void {
+    const host = this.root.querySelector('.softkeys')!;
     for (const side of ['left', 'right'] as const) {
-      const col = this.root.querySelector(`.softkeys.${side}`)!;
-      for (let row = 1; row <= 5; row++) {
-        const index = (row - 1) * 2 + (side === 'left' ? 0 : 1);
+      ROW_Y.forEach((y, r) => {
+        const row = r + 1;
+        const index = r * 2 + (side === 'left' ? 0 : 1);
         const key = document.createElement('button');
-        key.className = 'softkey';
+        key.className = `softkey ${side}`;
+        // The flat end of each key tucks in against the bezel edge.
+        const edge = bezelEdgeX(y) + 2;
+        key.style.cssText = `left:${side === 'left' ? edge - 92 : 720 - edge}px;top:${y - 23}px`;
         key.setAttribute('aria-label', `${side} soft key ${row}`);
         key.title = `${side === 'left' ? 'Left' : 'Right'} key ${row} (${side === 'left' ? row : (row + 5) % 10})`;
-        key.innerHTML = '<span class="tick"></span>';
+        key.innerHTML = softKeySvg(side);
         key.addEventListener('pointerdown', (e) => {
           e.preventDefault();
           key.setPointerCapture(e.pointerId);
@@ -104,8 +119,8 @@ export class DeviceView {
         const up = () => this.softKeyUp();
         key.addEventListener('pointerup', up);
         key.addEventListener('pointercancel', up);
-        col.appendChild(key);
-      }
+        host.appendChild(key);
+      });
     }
   }
 

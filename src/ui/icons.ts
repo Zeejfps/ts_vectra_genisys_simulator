@@ -33,5 +33,5 @@ export function iconSvg(name: IconName): string {
 
 // Hardware button glyphs.
 export const HOME_GLYPH = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 L22 12 L19 12 L19 21 L14 21 L14 15 L10 15 L10 21 L5 21 L5 12 L2 12 Z"/></svg>`;
-export const BACK_GLYPH = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M2 12 L10 6 L10 10 L22 10 L22 14 L10 14 L10 18 Z"/></svg>`;
+export const BACK_GLYPH = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M1 12 L23 5.5 L23 8.3 L7.5 12 L23 15.7 L23 18.5 Z M11 12 L23 9.5 L23 14.5 Z"/></svg>`;
 export const LIBRARY_GLYPH = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 6 L9 6 L11 8 L20 8 L20 10 L7 10 L4 19 L3 19 Z M8 11 L23 11 L19 20 L4.5 20 Z"/></svg>`;
