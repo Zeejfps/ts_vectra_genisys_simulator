@@ -656,34 +656,66 @@ body {
 }
 
 .lcd-editor {
-  margin: 8px 6px;
-  padding: 10px 8px;
-  background: #fff;
-  border: 1px solid #1e1e1e;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+}
+
+.ed-box {
+  width: 150px;
+  border: 1px solid #f4f4f4;
+  text-align: center;
+}
+
+.ed-label,
+.ed-range {
+  background: #4a6076;
+  color: #fff;
 }
 
 .ed-label {
-  font-weight: 700;
+  padding: 3px 4px;
   font-size: 12px;
 }
 
 .ed-value {
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1;
+  padding: 4px;
+  background: #97cf7e;
+  font-size: 14px;
 }
 
 .ed-range {
+  padding: 3px 4px;
   font-size: 10px;
 }
 
-.ed-hint {
-  margin-top: auto;
-  font-size: 9.5px;
-  color: #444;
+.lcd-contact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 4px;
+}
+
+.ct-bar {
+  position: relative;
+  width: 24px;
+  height: 100%;
+  border: 1px solid #222;
+  background: #d8d8d8;
+}
+
+.ct-bar span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000;
+}
+
+.ct-label {
+  font-size: 11px;
+  text-align: center;
 }
 
 .lcd-placement {
@@ -784,14 +816,14 @@ body {
   width: 50%;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .st-row {
   display: grid;
   grid-template-columns: 32px 1fr auto;
-  height: 16px;
-  line-height: 14px;
+  height: 15px;
+  line-height: 13px;
   padding: 0 3px;
   border: 1.5px solid transparent;
 }

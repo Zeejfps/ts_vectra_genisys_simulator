@@ -15,6 +15,8 @@ import {
 } from './types';
 import {
   defaultParams,
+  defaultSetIntensity,
+  treatmentDurationMs,
   findParam,
   getWaveform,
   resolveBound,
@@ -36,7 +38,8 @@ export type Route =
   | { kind: 'dateTime' }
   | { kind: 'library' }
   | { kind: 'protocolBody' }
-  | { kind: 'protocolList'; area: string };
+  | { kind: 'protocolList'; area: string }
+  | { kind: 'electrodeCount'; indication: Indication; source: string };
 
 export type PowerState = 'off' | 'booting' | 'on';
 
@@ -160,6 +163,7 @@ export class Device {
         t.remainingMs = 0;
         this.complete(t);
         this.onBeep('complete');
+        this.showCompleted(t);
       }
     }
     if (changed) this.onChange();
@@ -210,6 +214,7 @@ export class Device {
     if (!t || t.status === 'running' || t.status === 'completed') {
       this.onBeep('error');
     } else {
+      t.startedAt ??= this.clock().getTime();
       t.status = 'running';
       this.onBeep('start');
     }
@@ -221,7 +226,7 @@ export class Device {
     this.dismissMessage();
     const t = this.activeTreatment;
     if (t?.status === 'running') {
-      t.status = 'paused';
+      this.pause(t);
       this.onBeep('key');
     } else if (t?.status === 'paused') {
       t.status = 'running';
@@ -239,8 +244,12 @@ export class Device {
     if (t && (t.status === 'running' || t.status === 'paused')) {
       this.complete(t);
       this.onBeep('key');
-      // Stopping shows the Completed Treatment Review screen.
-      this.stack = [{ kind: 'home' }, { kind: 'review', tid: t.id }];
+      if (t.params.method === 'Probe') {
+        // Microcurrent probe treatments return straight to Home (service manual p.47).
+        this.stack = [{ kind: 'home' }];
+      } else {
+        this.showCompleted(t);
+      }
     } else {
       this.onBeep('error');
     }
@@ -258,7 +267,8 @@ export class Device {
     const wf = getWaveform(t.waveform);
     const max = wf.intensityMax(t.params);
     const step = wf.intensityStep;
-    const targets = wf.linkedIntensity ? t.intensity.map((_, i) => i) : [this.intensityIndex(t)];
+    const both = wf.linkedIntensity || t.params.setIntensity === 'Both Channels';
+    const targets = both ? t.intensity.map((_, i) => i) : [this.intensityIndex(t)];
     for (const i of targets) {
       const next = roundTo(t.intensity[i] + detents * step, step);
       t.intensity[i] = clamp(next, 0, max);
@@ -279,13 +289,13 @@ export class Device {
     for (const ch of [1, 2] as ChannelId[]) {
       const t = this.treatmentOn(ch);
       if (t?.status === 'running') {
-        t.status = 'paused';
+        this.pause(t);
         paused = true;
       }
     }
     if (paused) {
       this.message = {
-        lines: ['Patient switch for Ch1 and 2 was pressed.', 'Press any button to continue...'],
+        lines: ['Patient switch for Ch 1 and 2 was pressed.', 'Press any button to continue...'],
         tone: 'pink',
         interrupt: true,
       };
@@ -325,6 +335,11 @@ export class Device {
   selectNextChannel(): void {
     const i = CHANNELS.indexOf(this.selectedChannel);
     this.selectedChannel = CHANNELS[(i + 1) % CHANNELS.length];
+    // Keep a paired treatment's Set Intensity in step with the framed channel.
+    const t = this.activeTreatment;
+    if (t && t.channels.length > 1 && t.params.setIntensity !== undefined && t.params.setIntensity !== 'Both Channels') {
+      t.params.setIntensity = t.channels.indexOf(this.selectedChannel) === 1 ? 'Second Channel' : 'First Channel';
+    }
   }
 
   viewSelectedChannel(): void {
@@ -360,7 +375,7 @@ export class Device {
       channels,
       intensity: channels.map(() => 0),
       status: 'setup',
-      remainingMs: Number(params.time) * 60_000,
+      remainingMs: treatmentDurationMs(params),
       elapsedMs: 0,
       source,
     };
@@ -387,8 +402,9 @@ export class Device {
   cycleParam(t: Treatment, key: string): void {
     const def = findParam(t.waveform, key);
     if (!def || def.kind !== 'choice') return;
-    const i = def.options.indexOf(String(t.params[key]));
-    const next = def.options[(i + 1) % def.options.length];
+    const options = def.optionsFor ? def.optionsFor(t.params) : def.options;
+    const i = options.indexOf(String(t.params[key]));
+    const next = options[(i + 1) % options.length];
     this.setParam(t, key, next);
   }
 
@@ -421,15 +437,21 @@ export class Device {
     const prev = t.params[key];
     t.params[key] = value;
 
-    if (key === 'time') {
-      const deltaMs = (Number(value) - Number(prev)) * 60_000;
-      t.remainingMs = t.status === 'setup' ? Number(value) * 60_000 : Math.max(1000, t.remainingMs + deltaMs);
+    if (key === 'time' || key === 'probeTime' || key === 'method') {
+      const before = treatmentDurationMs({ ...t.params, [key]: prev });
+      const after = treatmentDurationMs(t.params);
+      t.remainingMs = t.status === 'setup' ? after : Math.max(1000, t.remainingMs + after - before);
     }
-    if (key === 'channelMode' && !this.reallocate(t)) {
-      t.params[key] = prev;
+    if (key === 'channelMode') {
+      if (this.reallocate(t)) {
+        t.params.setIntensity = defaultSetIntensity(String(value));
+        this.selectedChannel = t.channels[0];
+      } else {
+        t.params[key] = prev;
+      }
     }
-    if (key === 'setIntensity') {
-      this.selectedChannel = t.channels[this.intensityIndex(t)];
+    if (key === 'setIntensity' && t.channels.length > 1) {
+      this.selectedChannel = t.channels[value === 'Second Channel' ? 1 : 0];
     }
     if (key === 'mode') {
       // Switching CC/CV changes the output unit, so start again from zero.
@@ -444,9 +466,14 @@ export class Device {
   intensityIndex(t: Treatment): number {
     if (t.channels.length < 2) return 0;
     if (getWaveform(t.waveform).linkedIntensity) return 0;
-    if (t.params.setIntensity === 'Ch B') return 1;
     const i = t.channels.indexOf(this.selectedChannel);
     return i < 0 ? 0 : i;
+  }
+
+  /** "Start New Treatment" on the Completed Treatment Review frees the channel. */
+  startNewTreatment(t: Treatment): void {
+    this.release(t);
+    this.stack = [{ kind: 'home' }, { kind: 'estim' }];
   }
 
   // ---------- utilities ----------
@@ -525,6 +552,18 @@ export class Device {
   private complete(t: Treatment): void {
     t.status = 'completed';
     t.intensity = t.intensity.map(() => 0);
+    t.endedAt = this.clock().getTime();
+  }
+
+  /** Pausing drops the output to zero; the intensity must be turned back up to resume. */
+  private pause(t: Treatment): void {
+    t.status = 'paused';
+    t.intensity = t.intensity.map(() => 0);
+  }
+
+  private showCompleted(t: Treatment): void {
+    this.selectedChannel = t.channels[0];
+    this.stack = [{ kind: 'home' }, { kind: 'review', tid: t.id }];
   }
 
   private isFree(ch: ChannelId): boolean {

@@ -73,11 +73,10 @@ function renderBlock(b: Block, narrow: boolean): string {
         <div class="vals">${b.values.map((v) => `<span>${esc(v)}</span>`).join('')}</div>
         <div class="unit">${esc(b.unit)}</div></div>`;
     case 'valueEditor':
-      return `<div class="lcd-editor" style="${gridPos(b.area, narrow)}">
+      return `<div class="lcd-editor" style="${gridPos(b.area, narrow)}"><div class="ed-box">
         <div class="ed-label">${esc(b.label)}</div>
         <div class="ed-value">${esc(b.value)}</div>
-        <div class="ed-range">${esc(b.range)}</div>
-        <div class="ed-hint">Use the arrow buttons to change the value, then press the Accept button.<br>Press Back to cancel.</div></div>`;
+        <div class="ed-range">${esc(b.range)}</div></div></div>`;
     case 'placement':
       return `<div class="lcd-placement" style="${gridPos(b.area, narrow)}">${placementSvg(b.figure)}<div class="cap">${esc(b.caption)}</div></div>`;
     case 'keyboard':
@@ -93,6 +92,10 @@ function renderBlock(b: Block, narrow: boolean): string {
         <div class="kb-hint">${esc(b.hint)}</div></div>`;
     case 'figure':
       return `<div class="lcd-figure" style="grid-row:1 / 6;grid-column:2">${bodySvg()}</div>`;
+    case 'contact':
+      return `<div class="lcd-contact" style="${gridPos(b.area, narrow)}">
+        <div class="ct-bar"><span style="height:${Math.round(b.level * 100)}%"></span></div>
+        <div class="ct-label">Contact<br>Quality</div></div>`;
     case 'sectionLabel':
       return `<div class="lcd-section" style="grid-row:${b.row};grid-column:1 / -1">${esc(b.text)}</div>`;
   }

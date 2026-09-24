@@ -30,6 +30,9 @@ export interface Treatment {
   remainingMs: number;
   /** Time the output has actually been delivering (excludes pauses). */
   elapsedMs: number;
+  /** Unit clock time (ms) when Start was first pressed / when the treatment ended. */
+  startedAt?: number;
+  endedAt?: number;
   /** Set when a treatment was loaded from an Indication, shown in the review screen. */
   source?: string;
 }

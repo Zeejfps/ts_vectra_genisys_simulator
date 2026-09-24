@@ -22,7 +22,7 @@ describe('power and home', () => {
     const s = d.screen();
     expect(s.title).toBe('Chattanooga Group Vectra Genisys');
     expect(s.slots[L(1)]?.label).toBe('Electrotherapy');
-    expect(s.status?.rows.map((r) => r.status)).toEqual(['Available', 'Available', 'Available', 'Available']);
+    expect(s.status?.rows.map((r) => r.status)).toEqual(['Available', 'Available', 'Available', 'Available', 'No Appl.']);
     expect(s.status?.rows[0].framed).toBe(true);
   });
 
@@ -83,9 +83,10 @@ describe('electrotherapy setup', () => {
     d.pressSoftKey(L(1));
     d.pressSoftKey(R(5)); // Edit
     d.pressSoftKey(L(3)); // Beat Low 80
-    d.pressSoftKey(R(2)); // up
-    d.pressSoftKey(R(2)); // up
-    d.pressSoftKey(R(3)); // accept
+    expect(d.screen().title).toBe('Beat Low');
+    d.pressSoftKey(R(1)); // up
+    d.pressSoftKey(R(1)); // up
+    d.pressSoftKey(R(2)); // accept
     expect(labels(d)[L(3)]).toBe('Beat Low\n82 Hz');
   });
 
@@ -95,7 +96,7 @@ describe('electrotherapy setup', () => {
     d.pressSoftKey(L(1));
     d.pressSoftKey(R(5));
     d.pressSoftKey(L(3));
-    d.pressSoftKey(R(4)); // down
+    d.pressSoftKey(R(3)); // down
     d.pressBack();
     expect(labels(d)[L(3)]).toBe('Beat Low\n80 Hz');
   });
@@ -106,8 +107,8 @@ describe('electrotherapy setup', () => {
     d.pressSoftKey(L(1));
     d.pressSoftKey(R(5));
     d.pressSoftKey(L(3));
-    for (let i = 0; i < 200; i++) d.pressSoftKey(R(2));
-    d.pressSoftKey(R(3));
+    for (let i = 0; i < 200; i++) d.pressSoftKey(R(1));
+    d.pressSoftKey(R(2));
     expect(labels(d)[L(3)]).toBe('Beat Low\n149 Hz');
   });
 });
@@ -151,7 +152,11 @@ describe('treatment lifecycle', () => {
     d.pressHome();
     d.pressStop();
     expect(d.screen().title).toBe('Completed Treatment Review Ch 1-2');
-    expect(labels(d)[L(5)]).toBe('Save to\nPatient Card');
+    expect(labels(d)[L(1)]).toBe('Save to\nPatient Card');
+    expect(labels(d)[R(1)]).toBe('Start New\nTreatment');
+    d.pressSoftKey(R(1));
+    expect(d.channelStatus(1)).toBe('Available');
+    expect(d.route.kind).toBe('estim');
   });
 
   it('patient interrupt pauses channels 1/2 and shows a message', () => {
@@ -198,9 +203,40 @@ describe('channel modes', () => {
     d.pressSoftKey(R(5));
     d.pressSoftKey(L(1)); // Reciprocal
     d.turnKnob(4);
-    d.pressSoftKey(R(1)); // Set Intensity -> Ch B
+    d.pressSoftKey(R(1)); // Set Intensity -> Second Channel
     d.turnKnob(2);
     expect(d.activeTreatment?.intensity).toEqual([2, 1]);
+    d.pressSoftKey(R(1)); // Set Intensity -> back to First Channel
+    expect(labels(d)[R(1)]).toBe('Set Intensity\nFirst Channel');
+    d.turnKnob(2);
+    expect(d.activeTreatment?.intensity).toEqual([3, 1]);
+    expect(d.selectedChannel).toBe(1);
+  });
+
+  it('Russian reciprocal can switch Set Intensity back and forth', () => {
+    const d = poweredDevice();
+    d.pressSoftKey(L(1)); // Electrotherapy
+    d.pressSoftKey(R(3)); // Russian
+    d.pressSoftKey(R(5)); // Edit
+    d.pressSoftKey(L(1)); // Reciprocal
+    for (const [expected, ch] of [['Second Channel', 2], ['First Channel', 1], ['Second Channel', 2]] as const) {
+      d.pressSoftKey(R(1));
+      expect(labels(d)[R(1)]).toBe(`Set Intensity\n${expected}`);
+      expect(d.selectedChannel).toBe(ch);
+    }
+  });
+
+  it('Select Channel on Home keeps Set Intensity in step', () => {
+    const d = poweredDevice();
+    d.pressSoftKey(L(1));
+    d.pressSoftKey(R(3)); // Russian on Ch 1
+    d.pressSoftKey(R(5));
+    d.pressSoftKey(L(1)); // Reciprocal -> Ch 1-2
+    d.pressHome();
+    d.pressSoftKey(L(5)); // Select Channel -> Ch 2
+    expect(d.activeTreatment?.params.setIntensity).toBe('Second Channel');
+    d.turnKnob(2);
+    expect(d.activeTreatment?.intensity).toEqual([0, 1]);
   });
 });
 
@@ -258,5 +294,74 @@ describe('screen saver', () => {
     d.pressStart();
     d.tick(SCREEN_SAVER_MS);
     expect(d.screen().kind).toBe('screen');
+  });
+});
+
+describe('behaviour confirmed by the service manual and training videos', () => {
+  it('pausing drops intensity to zero and Start resumes', () => {
+    const d = poweredDevice();
+    d.pressSoftKey(L(1));
+    d.pressSoftKey(L(1));
+    d.turnKnob(10);
+    d.pressStart();
+    d.pressPause();
+    expect(d.channelStatus(1)).toBe('Paused');
+    expect(d.activeTreatment?.intensity).toEqual([0, 0]);
+    d.pressStart();
+    expect(d.channelStatus(1)).toBe('Running');
+  });
+
+  it('shows the Completed Treatment Review when the timer runs out', () => {
+    const d = poweredDevice();
+    d.pressSoftKey(L(1));
+    d.pressSoftKey(L(1));
+    d.pressStart();
+    d.pressHome();
+    d.tick(20 * 60_000);
+    expect(d.screen().title).toBe('Completed Treatment Review Ch 1-2');
+  });
+
+  it('timer drops the leading zero under a minute', () => {
+    const d = poweredDevice();
+    d.pressSoftKey(L(1));
+    d.pressSoftKey(L(1));
+    d.pressStart();
+    d.tick(19 * 60_000 + 40_000);
+    expect(d.screen().status?.timer).toBe(':20');
+  });
+
+  it('co-contract sets both channels together', () => {
+    const d = poweredDevice();
+    d.pressSoftKey(L(1));
+    d.pressSoftKey(R(3)); // Russian
+    d.pressSoftKey(R(5));
+    d.pressSoftKey(L(1)); // Reciprocal
+    d.pressSoftKey(L(1)); // Co-Contract
+    expect(labels(d)[R(1)]).toBe('Set Intensity\nBoth Channels');
+    d.turnKnob(4);
+    expect(d.activeTreatment?.intensity).toEqual([2, 2]);
+  });
+
+  it('microcurrent probe uses a seconds timer', () => {
+    const d = poweredDevice();
+    d.pressSoftKey(L(1));
+    d.pressSoftKey(R(2)); // Microcurrent
+    d.pressSoftKey(R(5)); // Edit
+    expect(labels(d)[R(1)]).toBe('Method\nPads');
+    d.pressSoftKey(R(1)); // Probe
+    expect(labels(d)[R(5)]).toBe('Treatment Time\n20 sec.');
+    expect(d.screen().status?.timer).toBe(':20');
+  });
+
+  it('clinical protocols ask for the number of electrodes', () => {
+    const d = poweredDevice();
+    d.pressLibrary();
+    d.pressSoftKey(L(1)); // Clinical Protocols
+    d.pressSoftKey(R(1)); // Shoulder
+    d.pressSoftKey(L(1)); // Acute Pain
+    expect(d.route.kind).toBe('electrodeCount');
+    d.pressSoftKey(L(4)); // 2 Electrodes
+    expect(d.screen().title).toBe('Treatment Review Ch 1');
+    expect(d.activeTreatment?.waveform).toBe('premod');
   });
 });

@@ -23,6 +23,8 @@ export interface NumberParam extends ParamBase {
 export interface ChoiceParam extends ParamBase {
   kind: 'choice';
   options: readonly string[];
+  /** Options available for the current settings, when they depend on other parameters. */
+  optionsFor?: (p: Params) => readonly string[];
   default: string;
 }
 
@@ -159,10 +161,22 @@ const setIntensityParam: ChoiceParam = {
   kind: 'choice',
   key: 'setIntensity',
   label: 'Set Intensity',
-  options: ['Ch A', 'Ch B'],
-  default: 'Ch A',
+  options: ['First Channel', 'Second Channel', 'Both Channels'],
+  optionsFor: (p) =>
+    p.channelMode === 'Co-Contract'
+      ? ['Both Channels', 'First Channel', 'Second Channel']
+      : ['First Channel', 'Second Channel'],
+  default: 'First Channel',
   visible: (p) => p.channelMode !== 'Single',
 };
+
+/** Set Intensity value a channel mode starts with. */
+export function defaultSetIntensity(channelMode: string): string {
+  return channelMode === 'Co-Contract' ? 'Both Channels' : 'First Channel';
+}
+
+// Anti-Fatigue only appears on the edit screen when stimulation is cycled.
+const notContinuous = (p: Params) => p.cycle !== 'Continuous';
 
 const phaseParam = (max: number, def: number): NumberParam => ({
   kind: 'number',
@@ -273,12 +287,12 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
     id: 'premod',
     name: 'Premodulated',
     reviewName: 'IFC Premod (2p)',
-    params: [sweepParam, beatLow, beatFreq, beatHigh, modeParam('CV'), timeParam(20)],
+    params: [sweepParam, beatLow, beatFreq, beatHigh, modeParam('CV'), cycleParam(CYCLE_MUSCLE, 'Continuous'), timeParam(20)],
     editLayout: [
       'sweep', null,
       null, null,
       ['beatLow', 'beatFreq'], 'mode',
-      'beatHigh', null,
+      'beatHigh', 'cycle',
       INTENSITY_SLOT, 'time',
     ],
     channelsNeeded: () => 1,
@@ -377,12 +391,12 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
     params: [
       channelModeParam,
       setIntensityParam,
-      phaseParam(400, 300),
+      phaseParam(400, 200),
       { kind: 'number', key: 'freq', label: 'Frequency', unit: 'pps', min: 1, max: 200, step: 1, default: 50 },
-      modeParam('CC'),
+      modeParam('CV'),
       rampParam('2 sec'),
-      onOff('antiFatigue', 'Anti-Fatigue'),
-      cycleParam(CYCLE_MUSCLE, '10/10'),
+      { ...onOff('antiFatigue', 'Anti-Fatigue'), visible: notContinuous },
+      cycleParam(CYCLE_MUSCLE, '10/50'),
       timeParam(10),
     ],
     editLayout: [
@@ -421,12 +435,12 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
     params: [
       channelModeParam,
       setIntensityParam,
-      phaseParam(400, 300),
+      phaseParam(400, 200),
       { kind: 'number', key: 'freq', label: 'Frequency', unit: 'pps', min: 1, max: 200, step: 1, default: 50 },
-      modeParam('CC'),
+      modeParam('CV'),
       rampParam('2 sec'),
-      onOff('antiFatigue', 'Anti-Fatigue'),
-      cycleParam(CYCLE_MUSCLE, '10/10'),
+      { ...onOff('antiFatigue', 'Anti-Fatigue'), visible: notContinuous },
+      cycleParam(CYCLE_MUSCLE, '10/50'),
       timeParam(10),
     ],
     editLayout: [
@@ -475,15 +489,16 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
       { kind: 'number', key: 'burst', label: 'Burst Freq.', unit: 'bps', min: 20, max: 100, step: 1, default: 50 },
       modeParam('CC'),
       rampParam('2 sec'),
-      onOff('antiFatigue', 'Anti-Fatigue'),
+      { ...onOff('antiFatigue', 'Anti-Fatigue'), visible: notContinuous },
       cycleParam(CYCLE_MUSCLE, '10/50'),
-      timeParam(10),
+      timeParam(20),
     ],
+    // Service manual Fig 5.9A: CC/CV left row 3, Burst Freq right row 3, Ramp right row 4.
     editLayout: [
       'channelMode', 'setIntensity',
-      'dutyCycle', 'burst',
-      'mode', 'ramp',
-      'antiFatigue', 'cycle',
+      'dutyCycle', 'cycle',
+      'mode', 'burst',
+      'antiFatigue', 'ramp',
       INTENSITY_SLOT, 'time',
     ],
     channelsNeeded: dualIfNotSingle,
@@ -517,29 +532,42 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
     name: 'Microcurrent',
     reviewName: 'Microcurrent',
     params: [
+      { kind: 'choice', key: 'method', label: 'Method', options: ['Pads', 'Probe'], default: 'Pads' },
       {
         kind: 'choice',
         key: 'polarity',
         label: 'Polarity',
         options: ['Positive', 'Negative', 'Alternating'],
-        default: 'Alternating',
+        default: 'Positive',
       },
-      { kind: 'number', key: 'carrier', label: 'Carrier Freq.', unit: 'Hz', min: 0.1, max: 1000, step: 0.1, default: 0.3 },
-      timeParam(20),
+      { kind: 'number', key: 'carrier', label: 'Frequency', unit: 'Hz', min: 0.1, max: 1000, step: 0.1, default: 0.3 },
+      { ...timeParam(20), visible: (p) => p.method !== 'Probe' },
+      {
+        kind: 'number',
+        key: 'probeTime',
+        label: 'Treatment Time',
+        unit: 'sec.',
+        min: 1,
+        max: 60,
+        step: 1,
+        default: 20,
+        visible: (p) => p.method === 'Probe',
+      },
     ],
+    // Service manual Fig 5.17: contact quality graph on the left, settings down the right.
     editLayout: [
-      'polarity', 'carrier',
+      null, 'method',
+      null, 'polarity',
+      null, 'carrier',
       null, null,
-      null, null,
-      null, null,
-      INTENSITY_SLOT, 'time',
+      INTENSITY_SLOT, ['time', 'probeTime'],
     ],
     channelsNeeded: () => 1,
     linkedIntensity: false,
     intensityUnit: () => 'µA',
     intensityMax: () => 1000,
     intensityStep: 5,
-    intensityLabel: () => 'µA',
+    intensityLabel: () => 'uA',
     padContact: null,
     description: [
       'DESCRIPTION:',
@@ -549,7 +577,8 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
     terms: [
       'TERMS:',
       'Polarity: Positive, Negative or Alternating.',
-      'Carrier Freq.: Frequency of the monophasic pulses.',
+      'Method: Pads (electrodes) or Probe.',
+      'Frequency: Frequency of the monophasic pulses.',
     ],
     placement: {
       figure: 'shoulder2',
@@ -562,7 +591,7 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
     name: 'High Volt',
     reviewName: 'High Volt',
     params: [
-      { kind: 'choice', key: 'polarity', label: 'Polarity', options: ['Positive', 'Negative'], default: 'Positive' },
+      { kind: 'choice', key: 'polarity', label: 'Polarity', options: ['Positive', 'Negative'], default: 'Negative' },
       {
         kind: 'choice',
         key: 'sweep',
@@ -578,13 +607,13 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
         unit: 'pps',
         min: 10,
         max: 120,
-        step: 1,
+        step: 10,
         default: 100,
         visible: (p) => p.sweep === 'Continuous',
       },
       { kind: 'choice', key: 'display', label: 'Display', options: ['Volts', 'Peak Current'], default: 'Volts' },
       cycleParam(CYCLE_MUSCLE, 'Continuous'),
-      onOff('antiFatigue', 'Anti-Fatigue'),
+      { ...onOff('antiFatigue', 'Anti-Fatigue'), visible: notContinuous },
       timeParam(20),
     ],
     editLayout: [
@@ -599,7 +628,7 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
     intensityUnit: () => 'V',
     intensityMax: () => 500,
     intensityStep: 1,
-    intensityLabel: (p) => (p.display === 'Peak Current' ? 'Peak mA' : 'Volts'),
+    intensityLabel: (p) => (p.display === 'Peak Current' ? 'Amps' : 'Volts'),
     padContact: null,
     description: [
       'DESCRIPTION:',
@@ -702,6 +731,12 @@ export function formatNumber(value: number, step: number): string {
 export function formatParamValue(def: ParamDef, value: ParamValue): string {
   if (def.kind === 'choice') return String(value);
   return `${formatNumber(Number(value), def.step)} ${def.unit}`;
+}
+
+/** Treatment length: minutes, or seconds for the microcurrent probe. */
+export function treatmentDurationMs(p: Params): number {
+  if (p.method === 'Probe') return Number(p.probeTime) * 1000;
+  return Number(p.time) * 60_000;
 }
 
 /** Parse a cycle time string like "10/50" into seconds, or null for Continuous. */

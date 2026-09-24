@@ -74,6 +74,8 @@ export function buildScreen(d: Device): ScreenModel {
       return protocolBodyScreen(d, base);
     case 'protocolList':
       return protocolListScreen(d, base, r.area);
+    case 'electrodeCount':
+      return electrodeCountScreen(d, base, r);
   }
 }
 
@@ -99,6 +101,9 @@ function set(model: ScreenModel, side: 'left' | 'right', row: number, s: Slot | 
   model.slots[slotIndex(side, row)] = s;
 }
 
+const noApplicator = (d: Device) => () =>
+  d.showMessage(['Ultrasound applicator is not plugged into unit.', 'Press any button to continue...']);
+
 const notSimulated = (d: Device, what: string) => () =>
   d.showMessage([`${what} is not available`, 'in this simulator.', 'Press any button to continue...']);
 
@@ -108,8 +113,8 @@ function homeScreen(d: Device, m: ScreenModel): ScreenModel {
   m.title = d.settings.clinicName;
   set(m, 'left', 1, slot('Electrotherapy', () => d.push({ kind: 'estim' })));
   set(m, 'right', 1, slot('Indications', () => d.push({ kind: 'indications' })));
-  set(m, 'left', 2, slot('Ultrasound', notSimulated(d, 'Ultrasound')));
-  set(m, 'right', 2, slot('Combination', notSimulated(d, 'Combination therapy')));
+  set(m, 'left', 2, slot('Ultrasound', noApplicator(d)));
+  set(m, 'right', 2, slot('Combination', noApplicator(d)));
   set(m, 'left', 3, slot('sEMG', notSimulated(d, 'sEMG')));
   set(m, 'right', 3, slot('sEMG + Stim', notSimulated(d, 'sEMG + Stim')));
   set(m, 'left', 4, slot('View / Edit\nChannel', () => d.viewSelectedChannel()));
@@ -179,9 +184,14 @@ function reviewScreen(d: Device, m: ScreenModel, t: Treatment): ScreenModel {
   const completed = t.status === 'completed';
   m.title = `${completed ? 'Completed ' : ''}Treatment Review ${channelsLabel(t)}`;
 
-  set(m, 'left', 1, slot('Waveform\nDescription', () =>
-    d.push({ kind: 'text', title: 'Waveform Description', lines: wrapParagraphs([...wf.description, '', ...wf.terms]), page: 0 })));
-  set(m, 'right', 1, slot('Electrode\nPlacement', () => d.push({ kind: 'placement', tid: t.id, page: 0 })));
+  if (completed) {
+    set(m, 'left', 1, slot('Save to\nPatient Card', () => d.showMessage(['No Patient Data Card inserted.', 'Press any button to continue...'])));
+    set(m, 'right', 1, slot('Start New\nTreatment', () => d.startNewTreatment(t)));
+  } else {
+    set(m, 'left', 1, slot('Waveform\nDescription', () =>
+      d.push({ kind: 'text', title: 'Waveform Description', lines: wrapParagraphs([...wf.description, '', ...wf.terms]), page: 0 })));
+    set(m, 'right', 1, slot('Electrode\nPlacement', () => d.push({ kind: 'placement', tid: t.id, page: 0 })));
+  }
 
   const lines = [`Waveform:  ${wf.reviewName}`];
   if (t.source) lines.push(t.source);
@@ -189,12 +199,12 @@ function reviewScreen(d: Device, m: ScreenModel, t: Treatment): ScreenModel {
     if (!isVisible(def, t.params)) continue;
     lines.push(`${def.label}:  ${formatParamValue(def, t.params[def.key])}`);
   }
-  if (completed) lines.push('', `Treatment Time Delivered: ${formatClock(t.elapsedMs)}`);
+  if (completed) {
+    lines.push('', `Start Time: ${t.startedAt ? formatTime(t.startedAt) : '--'}   End Time: ${t.endedAt ? formatTime(t.endedAt) : '--'}`);
+  }
   m.blocks.push({ type: 'text', area: FULL, tone: 'green', lines });
 
-  if (completed) {
-    set(m, 'left', 5, slot('Save to\nPatient Card', () => d.showMessage(['No Patient Data Card inserted.', 'Press any button to continue...'])));
-  } else {
+  if (!completed) {
     m.blocks.push(intensityBlock(t, 5, 1));
     set(m, 'right', 5, slot('Edit', () => d.push({ kind: 'edit', tid: t.id })));
   }
@@ -218,6 +228,10 @@ function editScreen(d: Device, m: ScreenModel, t: Treatment, r: Extract<Route, {
 
   if (r.editing) return numberEditor(d, m, t, r.editing);
 
+  if (t.waveform === 'microcurrent') {
+    m.blocks.push({ type: 'contact', area: { rows: [1, 4], cols: [1, 1] }, level: contactLevel(t) });
+  }
+
   wf.editLayout.forEach((entry, i) => {
     const def = resolveLayoutEntry(t.waveform, entry, t.params);
     if (def === null) return;
@@ -238,17 +252,19 @@ function numberEditor(d: Device, m: ScreenModel, t: Treatment, editing: { key: s
   if (!def || def.kind !== 'number') return m;
   const min = resolveBound(def.min, t.params);
   const max = resolveBound(def.max, t.params);
+  // Layout follows the Treatment Time editor photographed in the Laser Module manual:
+  // title bar shows the parameter, a small value box, arrows on the right rows 1-3.
+  m.title = def.label;
   m.blocks.push({
     type: 'valueEditor',
-    area: { rows: [1, 4], cols: [1, 1] },
+    area: { rows: [1, 3], cols: [1, 1] },
     label: def.label,
     value: formatParamValue(def, editing.value),
-    range: `Range: ${formatNumber(min, def.step)} - ${formatNumber(max, def.step)} ${def.unit}`,
+    range: `Range: ${formatNumber(min, def.step)}-${formatNumber(max, def.step)}`,
   });
-  set(m, 'right', 2, slot('', () => d.stepNumberEdit(1), { icon: 'up', repeat: true }));
-  set(m, 'right', 3, slot('', () => d.acceptNumberEdit(), { icon: 'accept' }));
-  set(m, 'right', 4, slot('', () => d.stepNumberEdit(-1), { icon: 'down', repeat: true }));
-  m.blocks.push(intensityBlock(t, 5, 1));
+  set(m, 'right', 1, slot('', () => d.stepNumberEdit(1), { icon: 'up', repeat: true }));
+  set(m, 'right', 2, slot('', () => d.acceptNumberEdit(), { icon: 'accept' }));
+  set(m, 'right', 3, slot('', () => d.stepNumberEdit(-1), { icon: 'down', repeat: true }));
   return m;
 }
 
@@ -429,7 +445,7 @@ function clinicNameScreen(d: Device, m: ScreenModel, r: Extract<Route, { kind: '
 function libraryScreen(d: Device, m: ScreenModel): ScreenModel {
   m.title = 'Clinical Library';
   set(m, 'left', 1, slot('Clinical\nProtocols', () => d.push({ kind: 'protocolBody' })));
-  set(m, 'right', 1, slot('User\nProtocols', notSimulated(d, 'User Protocols')));
+  set(m, 'right', 1, slot('User\nProtocols', () => d.showMessage(['No User Protocols.', 'Press any button to continue...'])));
   set(m, 'left', 2, slot('Sequencing', notSimulated(d, 'Sequencing')));
   set(m, 'right', 2, slot('MMC Graphical\nLibrary', () => d.showMessage(['No Multimedia Card inserted.', 'Press any button to continue...'])));
   return m;
@@ -473,13 +489,30 @@ function protocolListScreen(d: Device, m: ScreenModel, area: string): ScreenMode
   m.blocks.push({ type: 'sectionLabel', row: 4, text: 'Ultrasound' });
   for (const [side, row, name] of PROTOCOL_ESTIM) {
     const ind = INDICATIONS.find((i) => i.label === name) as Indication;
-    set(m, side, row, slot(ind.button, () => d.loadIndication(ind, `Protocol: ${area} - ${ind.label}`)));
+    const source = `Protocol: ${area} - ${ind.label}`;
+    const asksElectrodes = ind.waveform === 'ifc' || ind.waveform === 'premod';
+    set(m, side, row, slot(ind.button, () =>
+      asksElectrodes ? d.push({ kind: 'electrodeCount', indication: ind, source }) : d.loadIndication(ind, source)));
   }
-  const us = notSimulated(d, 'Ultrasound');
+  const us = noApplicator(d);
   set(m, 'left', 4, slot('Chronic\nPain', us));
   set(m, 'right', 4, slot('Sub-chronic\nPain', us));
   set(m, 'left', 5, slot('Scar Tissue /\nAdhesions', us));
   set(m, 'right', 5, slot('Joint Contract. w/\nAdhesive Capsulitis', us));
+  return m;
+}
+
+// Clinical Protocols ask how many electrodes will be used: four runs 4-pole
+// interferential, two runs premodulated on one channel.
+function electrodeCountScreen(d: Device, m: ScreenModel, r: Extract<Route, { kind: 'electrodeCount' }>): ScreenModel {
+  m.title = r.source.replace('Protocol: ', 'Clinical Protocols: ');
+  m.blocks.push({ type: 'text', area: { rows: [1, 3], cols: [1, 2] }, tone: 'white', lines: ['Select the number of electrodes', 'to be used for this treatment.'] });
+  const load = (waveform: WaveformId) => () => {
+    d.stack.pop();
+    d.loadIndication({ ...r.indication, waveform }, r.source);
+  };
+  set(m, 'left', 4, slot('2 Electrodes', load('premod')));
+  set(m, 'right', 4, slot('4 Electrodes', load('ifc')));
   return m;
 }
 
@@ -489,8 +522,8 @@ export function intensityText(t: Treatment, i: number): string {
   const wf = getWaveform(t.waveform);
   const v = t.intensity[i] ?? 0;
   if (t.waveform === 'hvpc' && t.params.display === 'Peak Current') {
-    // Estimated peak current into a 500 ohm load.
-    return String(Math.round((v / 500) * 1000));
+    // Estimated peak current (A) into a 500 ohm load.
+    return (v / 500).toFixed(2);
   }
   return formatNumber(v, wf.intensityStep < 1 ? 0.1 : 1);
 }
@@ -506,6 +539,7 @@ function statusPanel(d: Device): StatusPanel {
       framed: ch === d.selectedChannel,
     };
   });
+  rows.push({ label: 'US:', status: 'No Appl.', intensity: '', framed: false });
   let padContact: number[] = [];
   if (active && d.settings.padContactQuality) {
     const kind = getWaveform(active.waveform).padContact;
@@ -528,12 +562,22 @@ export function formatClock(ms: number): string {
   const total = Math.max(0, Math.ceil(ms / 1000));
   const m = Math.floor(total / 60);
   const s = total % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
+  // Under a minute the unit drops the leading zero, e.g. ":20".
+  return `${m > 0 ? m : ''}:${String(s).padStart(2, '0')}`;
 }
 
 function formatDate(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function formatTime(ms: number): string {
+  const d = new Date(ms);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function contactLevel(t: Treatment): number {
+  return t.status === 'running' && t.intensity[0] > 0 ? 0.8 : 0;
 }
 
 function truncate(s: string, n: number): string {
