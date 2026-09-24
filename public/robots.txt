@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://estim.builtbyzee.com/sitemap.xml
