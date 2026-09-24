@@ -17,12 +17,11 @@ import {
 } from './housing';
 import { BACK_GLYPH, HOME_GLYPH, LIBRARY_GLYPH } from './icons';
 import { renderLcd } from './lcd';
+import { DEGREES_PER_DETENT, type HardwareKey, type UnitView, hardwareAction } from './unitView';
 
-// The physical unit: housing, soft keys, hardware buttons and intensity knob.
-// Everything is laid out on a fixed canvas (see housing.ts) and scaled to fit.
-
-/** Knob rotation (degrees) per detent. */
-const DEGREES_PER_DETENT = 12;
+// Flat fallback for the physical unit, used when WebGL is unavailable: housing,
+// soft keys, hardware buttons and intensity knob drawn on a fixed canvas (see
+// housing.ts) and scaled to fit.
 
 const place = (cx: number, cy: number, w: number, h: number, rot = 0) =>
   `left:${cx - w / 2}px;top:${cy - h / 2}px;width:${w}px;height:${h}px;${rot ? `rotate:${rot}deg;` : ''}`;
@@ -51,7 +50,7 @@ const TEMPLATE = `
   </div>
 `;
 
-export class DeviceView {
+export class DeviceView implements UnitView {
   readonly root: HTMLElement;
   private readonly lcd: HTMLElement;
   private readonly knob: HTMLElement;
@@ -85,7 +84,12 @@ export class DeviceView {
     this.led.dataset.state = this.device.screenSaver ? 'saver' : this.device.power;
   }
 
-  /** Visual feedback for a knob turn triggered from outside (keyboard). */
+  frame(): void {}
+
+  pressHardware(key: HardwareKey): void {
+    hardwareAction(this.device, key);
+  }
+
   nudgeKnob(detents: number): void {
     this.knobAngle += detents * DEGREES_PER_DETENT;
     this.knob.style.transform = `rotate(${this.knobAngle}deg)`;
@@ -147,18 +151,10 @@ export class DeviceView {
   }
 
   private bindHardware(): void {
-    const actions: Record<string, () => void> = {
-      home: () => this.device.pressHome(),
-      back: () => this.device.pressBack(),
-      library: () => this.device.pressLibrary(),
-      start: () => this.device.pressStart(),
-      pause: () => this.device.pressPause(),
-      stop: () => this.device.pressStop(),
-    };
     for (const btn of this.root.querySelectorAll<HTMLButtonElement>('[data-hw]')) {
       btn.addEventListener('pointerdown', (e) => {
         e.preventDefault();
-        actions[btn.dataset.hw!]();
+        this.pressHardware(btn.dataset.hw as HardwareKey);
       });
     }
   }

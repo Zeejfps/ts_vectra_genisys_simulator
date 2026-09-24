@@ -2,7 +2,9 @@ import './styles.css';
 import { Device } from './sim/device';
 import { Beeper } from './ui/audio';
 import { DeviceView } from './ui/deviceView';
+import { DeviceView3D } from './ui/deviceView3d';
 import { Scope } from './ui/scope';
+import type { UnitView } from './ui/unitView';
 
 const SPEEDS = [1, 10, 60] as const;
 
@@ -71,7 +73,16 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
 }
 
-const view = new DeviceView(app.querySelector('.stage')!, device);
+const stage = app.querySelector<HTMLElement>('.stage')!;
+let view: UnitView;
+try {
+  view = new DeviceView3D(stage, device);
+} catch (err) {
+  // No WebGL: fall back to the flat artwork.
+  console.warn('3D view unavailable, using the flat view', err);
+  stage.replaceChildren();
+  view = new DeviceView(stage, device);
+}
 const scope = new Scope(app.querySelector('.scope')!, device);
 
 let speed = 1;
@@ -127,15 +138,15 @@ window.addEventListener('keydown', (e) => {
     arrowright: () => knob(1),
     arrowdown: () => knob(-1),
     arrowleft: () => knob(-1),
-    s: () => device.pressStart(),
-    p: () => device.pressPause(),
-    x: () => device.pressStop(),
-    h: () => device.pressHome(),
-    b: () => device.pressBack(),
-    l: () => device.pressLibrary(),
+    s: () => view.pressHardware('start'),
+    p: () => view.pressHardware('pause'),
+    x: () => view.pressHardware('stop'),
+    h: () => view.pressHardware('home'),
+    b: () => view.pressHardware('back'),
+    l: () => view.pressHardware('library'),
     u: () => {
-      device.pressHome();
-      device.pressBack();
+      view.pressHardware('home');
+      view.pressHardware('back');
     },
     i: () => device.patientInterrupt(),
     o: () => device.togglePower(),
@@ -169,6 +180,7 @@ function frame(now: number): void {
     view.render();
     syncPanel();
   }
+  view.frame(now);
   scope.update();
   requestAnimationFrame(frame);
 }
