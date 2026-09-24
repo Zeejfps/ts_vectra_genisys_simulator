@@ -167,7 +167,7 @@ export function leafKeySvg(mirror: boolean, glyph: string): string {
   const flip = mirror ? ' transform="translate(142 0) scale(-1 1)"' : '';
   return `<svg class="key-art" viewBox="0 0 142 64" aria-hidden="true">
     <g${flip}>${recessedKey(HOME_SHAPE)}</g>
-    <g class="hk-glyph" transform="translate(${mirror ? 64 : 54} 21)">${sized(glyph, 22)}</g>
+    <g class="hk-glyph"><g transform="translate(${mirror ? 64 : 54} 21)">${sized(glyph, 22)}</g></g>
   </svg>`;
 }
 
@@ -175,7 +175,7 @@ export function leafKeySvg(mirror: boolean, glyph: string): string {
 export function lensKeySvg(glyph: string): string {
   return `<svg class="key-art" viewBox="0 0 178 50" aria-hidden="true">
     ${recessedKey(LENS_SHAPE)}
-    <g class="hk-glyph" transform="translate(78 14)">${sized(glyph, 22)}</g>
+    <g class="hk-glyph"><g transform="translate(78 14)">${sized(glyph, 22)}</g></g>
   </svg>`;
 }
 
