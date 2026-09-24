@@ -51,6 +51,10 @@
   box-sizing: border-box;
 }
 
+button {
+  touch-action: manipulation;
+}
+
 html,
 body {
   margin: 0;
@@ -68,6 +72,7 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 400px;
   height: 100vh;
+  height: 100dvh;
 }
 
 /* ---------- stage ---------- */
@@ -78,7 +83,7 @@ body {
   background: var(--stage-bg);
   user-select: none;
   -webkit-user-select: none;
-  touch-action: none;
+  -webkit-touch-callout: none;
 }
 
 .device {
@@ -115,6 +120,8 @@ body {
   font: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  /* Controls own their touches; drags that start on the housing or LCD scroll the page. */
+  touch-action: none;
 }
 
 .device button:focus-visible {
@@ -341,17 +348,6 @@ body {
   color: #000;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 11px;
-}
-
-.power-led[data-state='saver'] {
-  background: #3aa7ff;
-  animation: led-flash 1.6s ease-in-out infinite;
-}
-
-@keyframes led-flash {
-  50% {
-    opacity: 0.15;
-  }
 }
 
 .lcd[data-kind='off'],
@@ -1048,18 +1044,52 @@ details summary {
 }
 
 @media (max-width: 900px) {
+  /* Single column: title and power controls first, then the unit, then the scope and help. */
   #app {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
     height: auto;
-  }
-
-  .stage {
-    height: 88vh;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
   }
 
   .panel {
-    border-left: none;
-    border-top: 1px solid var(--panel-border);
-    padding: 16px;
+    display: contents;
+  }
+
+  .panel > * {
+    margin: 0 max(16px, env(safe-area-inset-left));
+  }
+
+  .panel-head {
+    order: 0;
+    padding-top: 16px;
+  }
+
+  .panel-card.unit {
+    order: 1;
+  }
+
+  .stage {
+    order: 2;
+    width: 100%;
+    /* Match the unit's proportions so it fills the width without dead space above and below. */
+    aspect-ratio: 744 / 1184;
+    max-height: 88vh;
+    max-height: 88svh;
+    border-block: 1px solid var(--panel-border);
+  }
+
+  .panel-card.scope {
+    order: 3;
+  }
+
+  .panel-card.help {
+    order: 4;
+  }
+
+  .ctl,
+  .seg button {
+    min-height: 44px;
   }
 }

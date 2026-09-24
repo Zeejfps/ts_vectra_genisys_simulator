@@ -15,7 +15,7 @@ app.innerHTML = `
       <p>Interactive replica of the Vectra Genisys electrotherapy interface. Unofficial, for training and exploration only. Not a medical device.</p>
     </header>
 
-    <section class="panel-card">
+    <section class="panel-card unit">
       <h2>Unit</h2>
       <div class="row">
         <button class="ctl power" data-action="power"><span class="dot"></span><span class="label">Power On</span></button>
@@ -31,7 +31,7 @@ app.innerHTML = `
 
     <section class="panel-card scope"></section>
 
-    <section class="panel-card">
+    <section class="panel-card help">
       <details>
         <summary><h2>How to use</h2></summary>
         <ol class="guide">
