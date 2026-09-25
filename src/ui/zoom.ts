@@ -104,10 +104,14 @@ export class StageZoom {
     return { x, y };
   }
 
-  /** Whether an event started on something that handles its own input. */
+  /**
+   * Whether an event started on something that handles its own drags: the
+   * knob, or the floating controls. A drag from one of the unit's keys still
+   * pans; the key only acts on a tap (see DRAG_SLOP).
+   */
   private onControl(e: Event): boolean {
-    // The 3D view cancels pointer and touch events that land on its keys and knob.
-    return e.defaultPrevented || (e.target as Element).closest('button, [role="slider"]') !== null;
+    // The 3D view cancels touches that land on its knob.
+    return e.defaultPrevented || (e.target as Element).closest('.unit-controls, [role="slider"]') !== null;
   }
 
   private bindWheel(): void {

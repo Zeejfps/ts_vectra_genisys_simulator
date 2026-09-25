@@ -5,7 +5,7 @@ import { CSS3DObject, CSS3DRenderer } from 'three/addons/renderers/CSS3DRenderer
 import modelUrl from '../assets/vectra_genisys.glb?url';
 import type { Device } from '../sim/device';
 import { renderLcd } from './lcd';
-import { DEGREES_PER_DETENT, type HardwareKey, type UnitView, hardwareAction } from './unitView';
+import { DEGREES_PER_DETENT, DRAG_SLOP, type HardwareKey, type UnitView, hardwareAction } from './unitView';
 
 // The physical unit as a 3D model (built by tools/build_genisys_model.py).
 //
@@ -79,6 +79,8 @@ export class DeviceView3D implements UnitView {
   private knobAngle = 0;
   private pressedSlot: number | null = null;
   private repeatTimer: number | undefined;
+  /** Whether the held soft key has started repeating, so its release doesn't press it again. */
+  private repeated = false;
   private needsRender = true;
   private lastFrame = 0;
 
@@ -148,14 +150,24 @@ export class DeviceView3D implements UnitView {
   }
 
   softKeyDown(index: number): void {
+    this.holdSoftKey(index, true);
+  }
+
+  /**
+   * Show a soft key held down, pressing it now if `now` (otherwise the caller
+   * does on release). A repeating key starts repeating if held either way.
+   */
+  private holdSoftKey(index: number, now: boolean): void {
     const repeat = this.device.screen().slots[index]?.repeat === true;
     this.pressedSlot = index;
+    this.repeated = false;
     this.holdKey(`softkey_${index}`, true);
-    this.device.pressSoftKey(index);
+    if (now) this.device.pressSoftKey(index);
     this.render();
     if (!repeat) return;
     let delay = 380;
     const fire = () => {
+      this.repeated = true;
       this.device.pressSoftKey(index);
       delay = Math.max(35, delay * 0.8);
       this.repeatTimer = window.setTimeout(fire, delay);
@@ -393,6 +405,8 @@ export class DeviceView3D implements UnitView {
     const canvas = this.renderer.domElement;
     let knobDrag: { last: number; carry: number } | null = null;
     let heldHw: string | null = null;
+    // A finger on a key: it acts on release, if the finger didn't drag off.
+    let tap: { id: string; pointer: number; x: number; y: number } | null = null;
 
     const angleAt = (e: PointerEvent) => {
       const p = this.knob!.getWorldPosition(new THREE.Vector3()).project(this.camera);
@@ -400,15 +414,18 @@ export class DeviceView3D implements UnitView {
       return Math.atan2(y - ((1 - p.y) / 2) * canvas.clientHeight, x - ((p.x + 1) / 2) * canvas.clientWidth) / DEG;
     };
 
-    // Touches that start on a control are ours; anywhere else they scroll the page.
+    // A touch on the knob turns it. Anywhere else, including the keys, a drag
+    // pans the zoomed unit (see ui/zoom.ts) or scrolls.
     canvas.addEventListener(
       'touchstart',
       (e) => {
         const t = e.touches[0];
-        if (t && this.hitTarget(t.pageX, t.pageY, true)) e.preventDefault();
+        if (t && this.hitTarget(t.pageX, t.pageY, true) === 'knob') e.preventDefault();
       },
       { passive: false },
     );
+    // No long-press menu while a finger holds a key.
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
     canvas.addEventListener('pointerdown', (e) => {
       // A second finger is the start of a pinch, not a press.
@@ -418,7 +435,15 @@ export class DeviceView3D implements UnitView {
       e.preventDefault();
       canvas.setPointerCapture(e.pointerId);
       const [kind, name] = id.split(':');
-      if (kind === 'softkey') {
+      if (e.pointerType === 'touch' && kind !== 'knob') {
+        tap = { id, pointer: e.pointerId, x: e.pageX, y: e.pageY };
+        if (kind === 'softkey') {
+          this.holdSoftKey(Number(name), false);
+        } else {
+          heldHw = `key_${name}`;
+          this.holdKey(heldHw, true);
+        }
+      } else if (kind === 'softkey') {
         this.softKeyDown(Number(name));
       } else if (kind === 'hw') {
         heldHw = `key_${name}`;
@@ -431,7 +456,9 @@ export class DeviceView3D implements UnitView {
     });
 
     canvas.addEventListener('pointermove', (e) => {
-      if (knobDrag) {
+      if (tap?.pointer === e.pointerId) {
+        if (Math.hypot(e.pageX - tap.x, e.pageY - tap.y) > DRAG_SLOP) end();
+      } else if (knobDrag) {
         const a = angleAt(e);
         let delta = a - knobDrag.last;
         if (delta > 180) delta -= 360;
@@ -451,7 +478,9 @@ export class DeviceView3D implements UnitView {
       }
     });
 
+    /** Let go of whatever is held, without pressing it. */
     const end = () => {
+      tap = null;
       if (this.pressedSlot !== null) this.softKeyUp();
       if (heldHw) this.holdKey(heldHw, false);
       heldHw = null;
@@ -459,7 +488,15 @@ export class DeviceView3D implements UnitView {
       canvas.style.cursor = '';
     };
     this.cancelPointer = end;
-    canvas.addEventListener('pointerup', end);
+    canvas.addEventListener('pointerup', (e) => {
+      // A tapped key acts now, if the finger lifted on it.
+      if (tap?.pointer === e.pointerId && this.hitTarget(e.pageX, e.pageY, true) === tap.id) {
+        const [kind, name] = tap.id.split(':');
+        if (kind === 'hw') hardwareAction(this.device, name as HardwareKey);
+        else if (!this.repeated) this.device.pressSoftKey(Number(name));
+      }
+      end();
+    });
     canvas.addEventListener('pointercancel', end);
 
     canvas.addEventListener(

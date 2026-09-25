@@ -24,6 +24,12 @@ export interface UnitView {
   cancelInput(): void;
 }
 
+/**
+ * A finger that moves this far (CSS px) after pressing a key is dragging,
+ * not tapping: the press is dropped so the drag can pan the zoomed unit.
+ */
+export const DRAG_SLOP = 10;
+
 /** Knob rotation (degrees) per detent. */
 export const DEGREES_PER_DETENT = 12;
 

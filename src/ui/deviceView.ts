@@ -17,7 +17,7 @@ import {
 } from './housing';
 import { BACK_GLYPH, HOME_GLYPH, LIBRARY_GLYPH } from './icons';
 import { renderLcd } from './lcd';
-import { DEGREES_PER_DETENT, type HardwareKey, type UnitView, hardwareAction } from './unitView';
+import { DEGREES_PER_DETENT, DRAG_SLOP, type HardwareKey, type UnitView, hardwareAction } from './unitView';
 
 // Flat fallback for the physical unit, used when WebGL is unavailable: housing,
 // soft keys, hardware buttons and intensity knob drawn on a fixed canvas (see
@@ -60,6 +60,8 @@ export class DeviceView implements UnitView {
   private knobAngle = 0;
   private pressedSlot: number | null = null;
   private repeatTimer: number | undefined;
+  /** Whether the held soft key has started repeating, so its release doesn't press it again. */
+  private repeated = false;
   private endKnobDrag = () => {};
 
   constructor(
@@ -130,27 +132,37 @@ export class DeviceView implements UnitView {
         key.setAttribute('aria-label', `${side} soft key ${row}`);
         key.title = `${side === 'left' ? 'Left' : 'Right'} key ${row} (${side === 'left' ? row : (row + 5) % 10})`;
         key.innerHTML = softKeySvg(side);
-        key.addEventListener('pointerdown', (e) => {
-          e.preventDefault();
-          key.setPointerCapture(e.pointerId);
-          this.softKeyDown(index);
-        });
-        const up = () => this.softKeyUp();
-        key.addEventListener('pointerup', up);
-        key.addEventListener('pointercancel', up);
+        bindKey(
+          key,
+          (now) => this.holdSoftKey(index, now),
+          (fire) => {
+            if (fire && !this.repeated) this.device.pressSoftKey(index);
+            this.softKeyUp();
+          },
+        );
         host.appendChild(key);
       });
     }
   }
 
   softKeyDown(index: number): void {
+    this.holdSoftKey(index, true);
+  }
+
+  /**
+   * Show a soft key held down, pressing it now if `now` (otherwise the caller
+   * does on release). A repeating key starts repeating if held either way.
+   */
+  private holdSoftKey(index: number, now: boolean): void {
     const repeat = this.device.screen().slots[index]?.repeat === true;
     this.pressedSlot = index;
-    this.device.pressSoftKey(index);
+    this.repeated = false;
+    if (now) this.device.pressSoftKey(index);
     this.render();
     if (!repeat) return;
     let delay = 380;
     const fire = () => {
+      this.repeated = true;
       this.device.pressSoftKey(index);
       delay = Math.max(35, delay * 0.8);
       this.repeatTimer = window.setTimeout(fire, delay);
@@ -167,10 +179,12 @@ export class DeviceView implements UnitView {
 
   private bindHardware(): void {
     for (const btn of this.root.querySelectorAll<HTMLButtonElement>('[data-hw]')) {
-      btn.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        this.pressHardware(btn.dataset.hw as HardwareKey);
-      });
+      const press = () => this.pressHardware(btn.dataset.hw as HardwareKey);
+      bindKey(
+        btn,
+        (now) => now && press(),
+        (fire) => fire && press(),
+      );
     }
   }
 
@@ -225,4 +239,38 @@ export class DeviceView implements UnitView {
       { passive: false },
     );
   }
+}
+
+/**
+ * A mouse press acts at once. A finger shows the press but acts on release,
+ * and only if it lifts on the key without dragging, so a drag that starts on
+ * a key can pan the zoomed unit instead.
+ */
+function bindKey(el: HTMLElement, down: (actNow: boolean) => void, up: (act: boolean) => void): void {
+  let press: { pointer: number; touch: boolean; x: number; y: number } | null = null;
+  const release = (act: boolean) => {
+    press = null;
+    up(act);
+  };
+  el.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    el.setPointerCapture(e.pointerId);
+    press = { pointer: e.pointerId, touch: e.pointerType === 'touch', x: e.clientX, y: e.clientY };
+    down(!press.touch);
+  });
+  el.addEventListener('pointermove', (e) => {
+    if (press?.touch && press.pointer === e.pointerId && Math.hypot(e.clientX - press.x, e.clientY - press.y) > DRAG_SLOP) {
+      release(false);
+    }
+  });
+  el.addEventListener('pointerup', (e) => {
+    if (press?.pointer !== e.pointerId) return;
+    const r = el.getBoundingClientRect();
+    const onKey = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    release(press.touch && onKey);
+  });
+  el.addEventListener('pointercancel', (e) => {
+    if (press?.pointer === e.pointerId) release(false);
+  });
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
 }
