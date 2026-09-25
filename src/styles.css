@@ -1137,7 +1137,8 @@
     margin: 4px 0 10px;
   }
 
+  /* The device comes first on phones; the intro and disclaimer below the app say the same. */
   .panel-head p {
-    order: 2;
+    display: none;
   }
 }
