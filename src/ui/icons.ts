@@ -6,14 +6,14 @@ import type { IconName } from '../sim/screenModel';
 const stroke = 'fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"';
 
 const WAVE_ICONS: Record<string, string> = {
-  ifc: `<path ${stroke} d="M2 3 L22 15 M2 15 L22 3"/><circle cx="2" cy="3" r="1.6" fill="currentColor"/><circle cx="22" cy="3" r="1.6" fill="currentColor"/><circle cx="2" cy="15" r="1.6" fill="currentColor"/><circle cx="22" cy="15" r="1.6" fill="currentColor"/>`,
-  premod: `<path ${stroke} d="M1 9 C3 1,5 1,6 9 C7 17,9 17,10 9 C11 1,13 1,14 9 C15 17,17 17,18 9 C19 1,21 1,23 9"/><path ${stroke} d="M1 3 L1 15 M23 3 L23 15"/>`,
-  asym: `<path ${stroke} d="M1 12 L5 12 L5 3 L9 3 L9 14 C12 13,16 12,23 12"/>`,
+  ifc: `<path ${stroke} d="M3.5 3.5 L20.5 14.5 M3.5 14.5 L20.5 3.5"/><circle ${stroke} cx="2.5" cy="2.5" r="1.5"/><circle ${stroke} cx="21.5" cy="2.5" r="1.5"/><circle ${stroke} cx="2.5" cy="15.5" r="1.5"/><circle ${stroke} cx="21.5" cy="15.5" r="1.5"/>`,
+  premod: `<path ${stroke} d="M1 9 C3 1,9 1,11 9 C9 17,3 17,1 9 Z M13 9 C15 1,21 1,23 9 C21 17,15 17,13 9 Z M4 5 L4 13 M6 3.5 L6 14.5 M8 5 L8 13 M16 5 L16 13 M18 3.5 L18 14.5 M20 5 L20 13"/>`,
+  asym: `<path ${stroke} d="M1 8 L5 8 L5 2 L9 2 L9 16 C10 11,13 9,23 8.5"/>`,
   sym: `<path ${stroke} d="M1 9 L6 9 L6 2 L11 2 L11 16 L16 16 L16 9 L23 9"/>`,
-  microcurrent: `<path ${stroke} d="M1 12 L1 7 L4 7 L4 12 L7 12 L7 7 L10 7 L10 12 L13 12 L13 7 L16 7 L16 12 L19 12 L19 7 L22 7 L22 12"/>`,
-  vms: `<path ${stroke} d="M2 5 L4 5 L4 1 L6 1 L6 5 L8 5 L8 9 L6 9 M10 5 L22 5"/><path ${stroke} d="M2 14 L4 11 L6 16 L8 11 L10 16 L12 11 L14 16 L16 11 L18 16 L20 14 L22 14"/>`,
-  russian: `<path ${stroke} d="M2 2 L2 16 M4 2 L4 16 M6 2 L6 16 M8 2 L8 16 M14 2 L14 16 M16 2 L16 16 M18 2 L18 16 M20 2 L20 16"/>`,
-  hvpc: `<path ${stroke} d="M1 16 L4 16 L6 2 L8 16 L10 3 L12 16 L23 16"/>`,
+  microcurrent: `<path ${stroke} d="M1 9 L2 9 L2 5 L5 5 L5 9 L6 9 L6 5 L9 5 L9 9 L13 9 L13 13 L16 13 L16 9 L17 9 L17 13 L20 13 L20 9 L23 9"/>`,
+  vms: `<path ${stroke} d="M2 5 L6 5 L6 1 L8 1 L8 8 L10 8 L10 5 L22 5"/><path ${stroke} d="M2 14 L4 14 L4 11 L6 11 L6 17 L8 17 L8 11 L10 11 L10 17 L12 17 L12 11 L14 11 L14 17 L16 17 L16 14 L22 14"/>`,
+  russian: `<path ${stroke} d="M1 9 L23 9 M3 2 L3 16 M5 2 L5 16 M7 2 L7 16 M9 2 L9 16 M15 2 L15 16 M17 2 L17 16 M19 2 L19 16 M21 2 L21 16"/>`,
+  hvpc: `<path ${stroke} d="M1 16 L3 16 L4 2 C5 10,6 13,8 14 L9 2 C10 10,12 15,15 16 L23 16"/>`,
   dc: `<path ${stroke} d="M1 4 L23 4"/><path ${stroke} stroke-dasharray="1.5 2" d="M1 12 L23 12"/>`,
 };
 

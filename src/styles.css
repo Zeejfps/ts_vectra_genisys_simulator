@@ -455,9 +455,15 @@ body {
   flex: none;
 }
 
+/* With a pictogram the icon sits at the button edge and the label centres in
+   the remaining space, as on the unit. */
+.lcd-btn.has-icon > span {
+  flex: 1;
+}
+
 .lcd-btn .icon-wave {
-  width: 26px;
-  height: 19px;
+  width: 34px;
+  height: 25px;
 }
 
 .lcd-btn.icon-only .icon-arrow {
