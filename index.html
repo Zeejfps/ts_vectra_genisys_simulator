@@ -6,25 +6,10 @@
     <title>Vectra Genisys Simulator – Free Online Electrotherapy Trainer</title>
     <meta name="description" content="Free, interactive browser simulator of the Chattanooga Vectra Genisys electrotherapy unit. Practice IFC, Russian, biphasic, high volt and other waveforms, treatment setup and clinical protocols without the hardware." />
     <link rel="canonical" href="https://estim.builtbyzee.com/" />
-    <meta name="robots" content="index, follow, max-image-preview:large" />
-    <meta name="theme-color" content="#eef1f4" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#14191e" media="(prefers-color-scheme: dark)" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect x=%224%22 y=%222%22 width=%2224%22 height=%2228%22 rx=%226%22 fill=%22%235a7088%22/%3E%3Crect x=%229%22 y=%226%22 width=%2214%22 height=%2214%22 fill=%22%23ffff3a%22/%3E%3Ccircle cx=%2216%22 cy=%2225%22 r=%223%22 fill=%22%23fff%22/%3E%3C/svg%3E" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="apple-mobile-web-app-title" content="Vectra Sim" />
-    <meta name="mobile-web-app-capable" content="yes" />
-
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Vectra Genisys Simulator" />
+    <!-- site:head -->
     <meta property="og:title" content="Vectra Genisys Simulator – Free Online Electrotherapy Trainer" />
     <meta property="og:description" content="Practice on an interactive replica of the Vectra Genisys electrotherapy interface, right in your browser. Unofficial, for training only." />
     <meta property="og:url" content="https://estim.builtbyzee.com/" />
-    <meta property="og:image" content="https://estim.builtbyzee.com/og-image.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="The simulated Vectra Genisys unit showing its home screen, next to an output monitor." />
-    <meta name="twitter:card" content="summary_large_image" />
 
     <script type="application/ld+json">
       {
@@ -46,101 +31,22 @@
     <div id="app"></div>
     <noscript><p class="noscript">Please enable JavaScript to use the simulator.</p></noscript>
 
-    <article class="about" id="about">
-      <section>
-        <h2>About the Vectra Genisys Simulator</h2>
-        <p>
-          This is a free, interactive replica of the Chattanooga Vectra Genisys electrotherapy unit's interface that runs in your
-          web browser. It reproduces the unit's colour screen, its ten soft keys, the Home, Back and Clinical Resources Library
-          buttons, the Start, Pause and Stop buttons, and the intensity knob. It also follows the screen flow described in the
-          Vectra Genisys user manual, so you can learn where each setting lives and how a treatment is set up before you use a
-          real unit.
-        </p>
-        <p>
-          An output monitor next to the unit draws the shape of the selected waveform as you change its parameters. It shows
-          how carrier frequency, beat frequency, phase duration, burst rate, ramp and cycle time change the output.
-        </p>
-      </section>
-
-      <section>
-        <h2>Who it's for</h2>
-        <ul>
-          <li>Physical therapy (PT) and physical therapist assistant (PTA) students learning therapeutic modalities.</li>
-          <li>Athletic training, chiropractic and occupational therapy students who work with electrical stimulation (e-stim).</li>
-          <li>Instructors who want to demonstrate the interface in class or assign practice outside the lab.</li>
-          <li>New clinicians getting to know a Vectra Genisys before using one with patients.</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>Electrotherapy waveforms you can practice</h2>
-        <p>All ten electrotherapy waveforms on the unit are simulated, with the parameter ranges from the user manual.</p>
-        <dl class="waveforms">
-          <dt>Interferential current (IFC, 4 pole)</dt>
-          <dd>Carrier of 2500, 4000 or 5000 Hz, beat frequency of 1–200 Hz with optional sweep, and vector scan. Up to 100 mA (CC) or 100 V (CV).</dd>
-          <dt>Premodulated (IFC, 2 pole)</dt>
-          <dd>A fixed 2500 Hz carrier with the same beat frequency and sweep options as four-pole IFC.</dd>
-          <dt>Asymmetrical biphasic</dt>
-          <dd>Phase duration of 20–1000 µs, 1–250 Hz, with burst, frequency modulation and amplitude modulation. Up to 110 mA.</dd>
-          <dt>Symmetrical biphasic</dt>
-          <dd>The same parameters as asymmetrical biphasic, with a balanced waveform, up to 80 mA.</dd>
-          <dt>VMS and VMS Burst</dt>
-          <dd>Single, reciprocal and co-contract channel modes, phase duration of 20–400 µs, 1–200 pps, ramp, cycle time and anti-fatigue. Up to 200 mA.</dd>
-          <dt>Russian stimulation</dt>
-          <dd>A 2500 Hz carrier with a 10–50% duty cycle and 20–100 bursts per second, commonly used for muscle strengthening protocols.</dd>
-          <dt>Microcurrent</dt>
-          <dd>5–1000 µA with positive, negative or alternating polarity, delivered through pads or a probe.</dd>
-          <dt>High voltage pulsed current (HVPC)</dt>
-          <dd>Up to 500 V, with polarity, sweep and 10–120 pps. The display can show volts or peak current.</dd>
-          <dt>Direct current (DC)</dt>
-          <dd>Up to 4 mA, with polarity reversal halfway through the treatment and 1–10 minute treatment times.</dd>
-        </dl>
-      </section>
-
-      <section>
-        <h2>What you can do</h2>
-        <ul>
-          <li>Set up a treatment on channel 1 or 2, edit its parameters, then start, pause and stop it with the timer running.</li>
-          <li>Switch between constant current (CC) and constant voltage (CV) and read the intensity in the status area.</li>
-          <li>Choose a waveform from the Electrotherapy Indications screen and browse Clinical Protocols by body area in the Clinical Resources Library.</li>
-          <li>Press the Patient Interrupt Switch and see how the unit responds.</li>
-          <li>Open Operator Utilities (Home and Back together) to set the clinic name, volume, date and time, and pad contact quality.</li>
-          <li>Speed up the treatment timer to 10× or 60× to see a full session end without waiting.</li>
-        </ul>
-        <p>
-          The simulator works with a mouse, a touch screen or a keyboard, and runs on desktop, tablet and phone. You can install
-          it as an app and use it offline.
-        </p>
-      </section>
-
-      <section>
-        <h2>Frequently asked questions</h2>
-        <h3>Is the simulator free?</h3>
-        <p>Yes. It's free to use, with no account and no download. It runs in any modern web browser.</p>
-        <h3>Does it produce real electrical stimulation?</h3>
-        <p>
-          No. It's software only and doesn't connect to any hardware. The output monitor shows an illustration of each waveform
-          family, not a measured electrical signal.
-        </p>
-        <h3>How accurate is it?</h3>
-        <p>
-          Screens, parameter ranges and button behaviour follow the Vectra Genisys user manual, the service manual and
-          walkthrough videos of the real unit. Some details aren't documented anywhere, such as the exact settings that each
-          Indication loads, so those are approximations. Always follow your instructor, your clinic's protocols and the
-          manufacturer's documentation when treating patients.
-        </p>
-        <h3>Does it simulate ultrasound, sEMG or combination therapy?</h3>
-        <p>
-          Those menus are on the Home screen, but the simulator focuses on electrotherapy. Ultrasound and Combination report
-          that no applicator is connected, as the real unit does without one, and sEMG isn't simulated.
-        </p>
-      </section>
-
-      <p class="disclaimer">
-        Unofficial, for training and exploration only. Not a medical device. Not affiliated with or endorsed by Enovis, DJO or
-        Chattanooga. Vectra and Genisys are trademarks of their respective owners.
+    <section class="prose home-intro" id="about">
+      <h2>A free Vectra Genisys trainer in your browser</h2>
+      <p>
+        This is an interactive replica of the Chattanooga Vectra Genisys electrotherapy unit's interface. It reproduces the
+        colour screen, the ten soft keys, the Home, Back and Clinical Resources Library buttons, Start, Pause and Stop, and the
+        intensity knob, and follows the screen flow in the user manual. Practice IFC, Russian, biphasic, VMS, high volt,
+        microcurrent and DC treatment setup before you use a real unit. It works on desktop, tablet and phone.
       </p>
-    </article>
+      <ul class="cards">
+        <li><a href="/about/"><strong>About</strong><span>Who it's for, the ten waveforms and what you can practice.</span></a></li>
+        <li><a href="/faq/"><strong>FAQ</strong><span>Cost, accuracy, offline use and what isn't simulated.</span></a></li>
+        <li><a href="/device-reference/"><strong>Device reference</strong><span>Screens, parameter ranges and defaults, with sources.</span></a></li>
+        <li><a href="/accuracy/"><strong>Accuracy</strong><span>Every detail the simulator had to approximate.</span></a></li>
+      </ul>
+    </section>
+    <!-- site:footer -->
 
     <script type="module" src="/src/main.ts"></script>
   </body>

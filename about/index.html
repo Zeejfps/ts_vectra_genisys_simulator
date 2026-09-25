@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>About the Vectra Genisys Simulator – Who It's For and What It Covers</title>
+    <meta name="description" content="Who the free Vectra Genisys simulator is for, the ten electrotherapy waveforms it covers (IFC, Premod, Russian, VMS, biphasic, HVPC, microcurrent, DC) and what you can practice." />
+    <link rel="canonical" href="https://estim.builtbyzee.com/about/" />
+    <!-- site:head -->
+    <meta property="og:title" content="About the Vectra Genisys Simulator – Who It's For and What It Covers" />
+    <meta property="og:description" content="Who the free Vectra Genisys simulator is for, the ten electrotherapy waveforms it covers (IFC, Premod, Russian, VMS, biphasic, HVPC, microcurrent, DC) and what you can practice." />
+    <meta property="og:url" content="https://estim.builtbyzee.com/about/" />
+  </head>
+  <body>
+    <!-- site:header -->
+    <main class="prose">
+      <h1>About the Vectra Genisys Simulator</h1>
+      <p class="lede">
+        A free, interactive replica of the Chattanooga Vectra Genisys electrotherapy unit's interface that runs in your web
+        browser.
+      </p>
+      <p>
+        It reproduces the unit's colour screen, its ten soft keys, the Home, Back and Clinical Resources Library buttons, the
+        Start, Pause and Stop buttons, and the intensity knob. It also follows the screen flow described in the Vectra Genisys
+        user manual, so you can learn where each setting lives and how a treatment is set up before you use a real unit.
+      </p>
+      <p>
+        An output monitor next to the unit draws the shape of the selected waveform as you change its parameters. It shows how
+        carrier frequency, beat frequency, phase duration, burst rate, ramp and cycle time change the output.
+      </p>
+      <p><a class="button" href="/">Open the simulator</a></p>
+
+      <h2 id="who-its-for">Who it's for</h2>
+      <ul>
+        <li>Physical therapy (PT) and physical therapist assistant (PTA) students learning therapeutic modalities.</li>
+        <li>Athletic training, chiropractic and occupational therapy students who work with electrical stimulation (e-stim).</li>
+        <li>Instructors who want to demonstrate the interface in class or assign practice outside the lab.</li>
+        <li>New clinicians getting to know a Vectra Genisys before using one with patients.</li>
+      </ul>
+
+      <h2 id="waveforms">Electrotherapy waveforms you can practice</h2>
+      <p>
+        All ten electrotherapy waveforms on the unit are simulated, with the parameter ranges from the user manual. The
+        <a href="/device-reference/">device reference</a> has the full ranges and defaults.
+      </p>
+      <dl>
+        <dt>Interferential current (IFC, 4 pole)</dt>
+        <dd>Carrier of 2500, 4000 or 5000 Hz, beat frequency of 1–200 Hz with optional sweep, and vector scan. Up to 100 mA (CC) or 100 V (CV).</dd>
+        <dt>Premodulated (IFC, 2 pole)</dt>
+        <dd>A fixed 2500 Hz carrier with the same beat frequency and sweep options as four-pole IFC.</dd>
+        <dt>Asymmetrical biphasic</dt>
+        <dd>Phase duration of 20–1000 µs, 1–250 Hz, with burst, frequency modulation and amplitude modulation. Up to 110 mA.</dd>
+        <dt>Symmetrical biphasic</dt>
+        <dd>The same parameters as asymmetrical biphasic, with a balanced waveform, up to 80 mA.</dd>
+        <dt>VMS and VMS Burst</dt>
+        <dd>Single, reciprocal and co-contract channel modes, phase duration of 20–400 µs, 1–200 pps, ramp, cycle time and anti-fatigue. Up to 200 mA.</dd>
+        <dt>Russian stimulation</dt>
+        <dd>A 2500 Hz carrier with a 10–50% duty cycle and 20–100 bursts per second, commonly used for muscle strengthening protocols.</dd>
+        <dt>Microcurrent</dt>
+        <dd>5–1000 µA with positive, negative or alternating polarity, delivered through pads or a probe.</dd>
+        <dt>High voltage pulsed current (HVPC)</dt>
+        <dd>Up to 500 V, with polarity, sweep and 10–120 pps. The display can show volts or peak current.</dd>
+        <dt>Direct current (DC)</dt>
+        <dd>Up to 4 mA, with polarity reversal halfway through the treatment and 1–10 minute treatment times.</dd>
+      </dl>
+
+      <h2 id="what-you-can-do">What you can do</h2>
+      <ul>
+        <li>Set up a treatment on channel 1 or 2, edit its parameters, then start, pause and stop it with the timer running.</li>
+        <li>Switch between constant current (CC) and constant voltage (CV) and read the intensity in the status area.</li>
+        <li>Choose a waveform from the Electrotherapy Indications screen and browse Clinical Protocols by body area in the Clinical Resources Library.</li>
+        <li>Press the Patient Interrupt Switch and see how the unit responds.</li>
+        <li>Open Operator Utilities (Home and Back together) to set the clinic name, volume, date and time, and pad contact quality.</li>
+        <li>Speed up the treatment timer to 10× or 60× to see a full session end without waiting.</li>
+      </ul>
+      <p>
+        The simulator works with a mouse, a touch screen or a keyboard, and runs on desktop, tablet and phone. You can install
+        it as an app and use it offline.
+      </p>
+    </main>
+    <!-- site:footer -->
+
+    <script type="module" src="/src/page.ts"></script>
+  </body>
+</html>

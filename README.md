@@ -16,4 +16,4 @@ npm run dev    # http://localhost:5173
 npm test
 ```
 
-See [docs/device-reference.md](docs/device-reference.md) for how the simulation maps to the user manual.
+See [docs/device-reference.md](docs/device-reference.md) for how the simulation maps to the user manual, and [docs/accuracy.md](docs/accuracy.md) for what is still approximated. Both are also published on the site at [/device-reference/](https://estim.builtbyzee.com/device-reference/) and [/accuracy/](https://estim.builtbyzee.com/accuracy/).

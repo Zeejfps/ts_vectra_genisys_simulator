@@ -1,6 +1,6 @@
-# Device reference notes
+# Vectra Genisys device reference
 
-Notes taken from the *Vectra Genisys Therapy System User Manual* (Enovis/DJO IFU, "Vectra Genisys IFU.pdf"). The page numbers below are the manual's printed page numbers.
+Notes taken from the *Vectra Genisys Therapy System User Manual* (Enovis/DJO IFU, "Vectra Genisys IFU.pdf"). The page numbers below are the manual's printed page numbers. Details that no source confirms are listed in [Accuracy and approximations](accuracy.md).
 
 ## Physical layout (p. 15, 41)
 
@@ -102,26 +102,3 @@ These sources were checked in the second research pass:
 - The Clinical Protocols list varies by body area. Shoulder shows all six e-stim and four ultrasound buttons (UM p.94). Cervical shows only Acute Pain, Chronic Pain, Increase Local Circulation and Relax Muscle Spasm, plus ultrasound Chronic Pain, Sub-chronic Pain and Scar Tissue / Adhesions (video, 6:02).
 - **IFC Vector Scan** reads Off, Manual, "Automatic 40%" and presumably "Automatic 100%" (the manual writes 40% / 100%). Manual adds **Vector Position** (45 deg., range 0–90) at right row 2; its editor draws a clover-shaped interference pattern. Automatic 40% varies each channel's intensity down to 60% of the setting, the two channels out of step (e.g. 0.6 / 0.9 readouts) ("IFC Interferential" video, 1:02–1:50).
 - High Volt frequency changes in steps of 10 (video).
-
-## Remaining approximations
-
-These points are still unconfirmed or guessed:
-- Defaults for Asym/Sym Biphasic and DC.
-- Indication presets and Clinical Protocol parameters. No source gives these values.
-- Clinical Protocol lists for body areas other than Shoulder and Cervical use the full Shoulder list.
-- Vector Scan timing (a 6 s cycle), the Vector Position step (1 deg.), and which channel 0 deg. favours are guesses.
-- **VMS FR** appears on the "Select VMS Type" screen (VMS, VMS Burst, VMS FR stacked on the left; TKA video, 1:31) but is not simulated; its icon is approximate.
-- Review-list order for Asym/Sym Biphasic, High Volt, Microcurrent and DC is not seen in footage and follows the parameter order.
-- Start/Pause/Stop act on the selected (framed) channel only. No source says whether they act on all channels.
-- Anti-Fatigue appears only when Cycle Time is not Continuous. This is inferred from the High Volt and Russian photos.
-- Knob resolution is 0.5 mA/V per detent (confirmed for IFC), 1 V for HVPC, 5 µA for microcurrent, and 0.1 mA for DC.
-- **2 vs 4 electrodes:** 2 electrodes loads Premod and 4 loads IFC (inferred).
-- Pressing Back out of a Treatment Review that was never started frees the channel.
-- Screen saver after 10 minutes idle.
-- HVPC peak current assumes a 500 Ω load.
-- **Display:** colour. The Genisys shipped in colour and monochrome versions (a "Monochromatic LCD" replacement part, 320×240, exists).
-- **Output monitor:** it illustrates each waveform family and is not an electrical model.
-- **Not simulated:**
-  - The Frequency editor's "Toggle Preset Frequencies" button.
-  - Saving User Protocols from the Edit screen through the folder key.
-  - The microcurrent probe hardware.
