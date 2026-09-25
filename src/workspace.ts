@@ -2,6 +2,11 @@ import { REPORT_BUTTON } from './site';
 
 const ARROW = '<span aria-hidden="true">↗</span>';
 
+// Tab icons, shown in the bottom bar on phones.
+const MONITOR_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4" /></svg>`;
+const GUIDE_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5z" /><path d="M12 6.5v13" /></svg>`;
+const KEYS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2" /><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M8 14h8" /></svg>`;
+
 export const WORKSPACE = `
   <aside class="panel" aria-label="Learning workspace">
     <header class="panel-head">
@@ -12,9 +17,9 @@ export const WORKSPACE = `
     <div class="sheet-scrim" data-close-sheet aria-hidden="true"></div>
 
     <div class="workspace-tabs" role="tablist" aria-label="Workspace tools">
-      <button id="tab-monitor" type="button" role="tab" aria-selected="true" aria-controls="pane-monitor" data-workspace-tab="monitor">Monitor</button>
-      <button id="tab-guide" type="button" role="tab" aria-selected="false" aria-controls="pane-guide" tabindex="-1" data-workspace-tab="guide">Quick start</button>
-      <button id="tab-keys" type="button" role="tab" aria-selected="false" aria-controls="pane-keys" tabindex="-1" data-workspace-tab="keys">Keyboard</button>
+      <button id="tab-monitor" type="button" role="tab" aria-selected="true" aria-controls="pane-monitor" data-workspace-tab="monitor">${MONITOR_ICON}<span>Monitor</span></button>
+      <button id="tab-guide" type="button" role="tab" aria-selected="false" aria-controls="pane-guide" tabindex="-1" data-workspace-tab="guide">${GUIDE_ICON}<span>Quick start</span></button>
+      <button id="tab-keys" type="button" role="tab" aria-selected="false" aria-controls="pane-keys" tabindex="-1" data-workspace-tab="keys">${KEYS_ICON}<span>Keyboard</span></button>
     </div>
 
     <div class="workspace-sheet">

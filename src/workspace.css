@@ -83,6 +83,17 @@
   line-height: 1.3;
   cursor: pointer;
 }
+.workspace-tabs svg {
+  display: none;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 @media (hover: hover) {
   .workspace-tabs button:hover {
     color: var(--ui-accent);
@@ -115,20 +126,25 @@
   gap: 11px;
   box-shadow: var(--ui-shadow);
 }
+/* Eyebrow over a serif title, like the Quick start intro. */
 .monitor-heading {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   gap: 10px;
   padding-bottom: 12px;
   margin-bottom: 2px;
   border-bottom: 1px solid var(--ui-line);
 }
 .monitor-heading h2 {
+  display: block;
+  margin: 6px 0 0;
   color: var(--ui-ink);
-  font-size: 14px;
-  font-weight: 650;
-  letter-spacing: -0.3px;
+  font:
+    400 22px/1.15 Georgia,
+    'Times New Roman',
+    serif;
+  letter-spacing: -0.5px;
   text-transform: none;
 }
 .monitor-state {
@@ -526,8 +542,15 @@
     background: var(--ui-bg);
   }
   .workspace-tabs button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     min-height: 52px;
     font-size: 13px;
+  }
+  .workspace-tabs svg {
+    display: block;
   }
   .workspace-tabs button[aria-selected='true']::after {
     top: -1px;

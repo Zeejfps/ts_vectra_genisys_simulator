@@ -32,7 +32,7 @@ export class Scope {
     private readonly device: Device,
   ) {
     host.innerHTML = `
-      <div class="monitor-heading"><h2>Output monitor</h2><span class="monitor-state" role="status">Unit off</span></div>
+      <div class="monitor-heading"><div><span class="eyebrow">LIVE OUTPUT</span><h2>Output monitor</h2></div><span class="monitor-state" role="status">Unit off</span></div>
       <div class="scope-head"><h3>Pulse shape</h3><span class="scope-sel"></span></div>
       <div class="scope-screen">
         <canvas class="scope-detail" width="640" height="220" role="img" aria-label="Selected channel pulse shape; waveform description follows"></canvas>
