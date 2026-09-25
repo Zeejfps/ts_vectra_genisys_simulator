@@ -73,7 +73,7 @@ These sources were checked in the second research pass:
 
 **Treatment behaviour**
 - Intensity is set with the knob *before* Start (SM, all videos).
-- While running, the intensity readout shows the delivered output, not the setpoint: it climbs through the ramp and falls to 0 during the off time of the cycle (observed on a real unit by a clinician).
+- While running, the intensity readout shows the delivered output, not the setpoint: it climbs through the ramp and falls to 0 during the off time of the cycle (observed on a real unit by a clinician; visible in the "Vectra Genisys Part 2" YouTube demo at about 7:30–7:55, where a 1.0 mA VMS stim reads 0.0 → 1.0 → 0.2 → 0.0 in both the Ch 1 row and the main readout).
 - Treatments run per channel, e.g. `Ch 1: Running` alongside `Ch 2: Completed`.
 - **Pause drops the intensity to 0.0.** Resume with Start ("Reset intensity and press the Start button", UM08 p.63).
 
