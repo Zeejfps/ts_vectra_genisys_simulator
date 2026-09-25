@@ -1,7 +1,8 @@
 import './site.css';
 import './styles.css';
+import { initFeedback } from './feedback';
 import { Device } from './sim/device';
-import { MENU_TOGGLE, initMenu, navLinks } from './site';
+import { MENU_TOGGLE, REPORT_BUTTON, initMenu, navLinks } from './site';
 import { Beeper } from './ui/audio';
 import { DeviceView } from './ui/deviceView';
 import { DeviceView3D } from './ui/deviceView3d';
@@ -39,6 +40,7 @@ app.innerHTML = `
       </div>
       <p>Interactive replica of the Vectra Genisys electrotherapy interface. Unofficial, for training and exploration only. Not a medical device.</p>
       <nav class="site-nav" id="site-nav" aria-label="Site">${navLinks('/')}</nav>
+      ${REPORT_BUTTON}
     </header>
 
     <section class="panel-card scope"></section>
@@ -60,6 +62,29 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
 const stage = app.querySelector<HTMLElement>('.stage')!;
 let view: UnitView;
+let speed: (typeof SPEEDS)[number] = 1;
+
+// Attached to issue reports so they say what the unit was showing.
+initFeedback(() => {
+  const { route, activeTreatment: t } = device;
+  return {
+    power: device.power,
+    screen: route.kind === 'text' ? `text: ${route.title}` : route.kind,
+    selectedChannel: device.selectedChannel,
+    treatment: t && {
+      waveform: t.waveform,
+      status: t.status,
+      channels: t.channels,
+      intensity: t.intensity,
+      params: t.params,
+      protocol: t.protocol ?? t.source,
+    },
+    otherTreatments: device.treatments.size - (t ? 1 : 0),
+    view: view instanceof DeviceView3D ? '3d' : 'flat',
+    timerSpeed: speed,
+  };
+});
+
 try {
   view = new DeviceView3D(stage, device);
 } catch (err) {
@@ -71,7 +96,6 @@ try {
 stage.insertAdjacentHTML('beforeend', UNIT_CONTROLS);
 const scope = new Scope(app.querySelector('.scope')!, device);
 
-let speed: (typeof SPEEDS)[number] = 1;
 let dirty = true;
 device.onChange = () => {
   dirty = true;

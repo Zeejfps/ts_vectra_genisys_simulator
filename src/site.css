@@ -219,7 +219,8 @@ a {
     padding-bottom: 12px;
   }
 
-  .site-footer .site-nav a {
+  .site-footer .site-nav a,
+  .site-footer .report-button {
     min-height: 40px;
     padding: 0 13px;
   }
@@ -426,4 +427,185 @@ a {
   :root:not([data-theme='light']) .button {
     color: #0d1a27;
   }
+}
+
+/* ---------- issue report ---------- */
+
+.report-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 10px;
+  border: 1px solid var(--ctl-border);
+  border-radius: 999px;
+  background: var(--ctl-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.report-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.report-button svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.panel-head .report-button {
+  align-self: flex-start;
+  margin-top: 10px;
+}
+
+.site-footer .report-button {
+  margin-top: 14px;
+}
+
+.report {
+  width: min(520px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  padding: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  background: var(--panel-bg);
+  color: var(--text);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.3);
+}
+
+.report::backdrop {
+  background: rgb(10 15 20 / 0.55);
+}
+
+.report [hidden] {
+  display: none !important;
+}
+
+.report-form,
+.report-done {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.report-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.report h2 {
+  margin: 0;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+}
+
+.report p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.report-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--ctl-border);
+  border-radius: 10px;
+  background: var(--ctl-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.report-close svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.report label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.report small {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.report input,
+.report select,
+.report textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--ctl-border);
+  border-radius: 8px;
+  background: var(--ctl-bg);
+  color: var(--text);
+  /* 16px keeps iOS from zooming in on focus. */
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.report textarea {
+  resize: vertical;
+}
+
+.report input:focus-visible,
+.report select:focus-visible,
+.report textarea:focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.report .report-trap {
+  position: absolute;
+  left: -9999px;
+}
+
+.report .report-status:empty {
+  display: none;
+}
+
+.report .report-status.error {
+  color: #c0392b;
+}
+
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.report-actions .button {
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.report-actions .button:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }

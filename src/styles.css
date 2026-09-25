@@ -1137,6 +1137,20 @@
     margin: 4px 0 10px;
   }
 
+  /* Keep the device near the top: the report link shows with the open menu. */
+  .panel-head .report-button {
+    order: 1;
+    align-self: stretch;
+    justify-content: center;
+    min-height: 44px;
+    margin: 0 0 12px;
+    font-size: 15px;
+  }
+
+  #site-nav:not(.open) + .report-button {
+    display: none;
+  }
+
   /* The device comes first on phones; the intro and disclaimer below the app say the same. */
   .panel-head p {
     display: none;

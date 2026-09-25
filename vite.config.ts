@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { marked } from 'marked';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
-import { MENU_TOGGLE, PAGES, SITE_URL, navLinks } from './src/site.ts';
+import { MENU_TOGGLE, PAGES, REPORT_BUTTON, SITE_URL, navLinks } from './src/site.ts';
 
 // Version shown in the app. A tag build in CI uses the pushed tag (e.g. "v1.2.3");
 // otherwise fall back to the nearest git tag, then to "dev".
@@ -61,6 +61,7 @@ const header = (path: string) => `
 const footer = (path: string) => `
     <footer class="site-footer">
       <nav class="site-nav" aria-label="Footer">${navLinks(path)}</nav>
+      ${REPORT_BUTTON}
       <p>
         Unofficial, for training and exploration only. Not a medical device. Not affiliated with or endorsed by Enovis, DJO or
         Chattanooga. Vectra and Genisys are trademarks of their respective owners.

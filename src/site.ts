@@ -45,6 +45,11 @@ export const MENU_TOGGLE = `<button class="menu-toggle" type="button" aria-expan
   <svg viewBox="0 0 24 24" aria-hidden="true"><path class="bars" d="M4 7h16M4 12h16M4 17h16" /><path class="close" d="M6 6l12 12M18 6 6 18" /></svg>
 </button>`;
 
+/** Button that opens the report dialog (see `initFeedback`). */
+export const REPORT_BUTTON = `<button class="report-button" type="button" data-report>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4" /><path d="M5 4h11l-2 4 2 4H5" /></svg>Report an issue
+</button>`;
+
 /** Wire up the menu toggle: it shows and hides the nav, and Escape closes it. */
 export function initMenu(): void {
   const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
