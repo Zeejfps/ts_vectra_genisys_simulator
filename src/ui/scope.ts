@@ -16,6 +16,15 @@ interface Sample {
   v: number;
 }
 
+type Palette = { bg: string; grid: string; trace: string; dim: string; text: string };
+
+const DARK = window.matchMedia('(prefers-color-scheme: dark)');
+
+/** Set text only when it changes, so an unchanged monitor doesn't relayout every frame. */
+function setText(el: HTMLElement, text: string): void {
+  if (el.textContent !== text) el.textContent = text;
+}
+
 export class Scope {
   private readonly detail: HTMLCanvasElement;
   private readonly strip: HTMLCanvasElement;
@@ -25,6 +34,12 @@ export class Scope {
   private readonly empty: HTMLElement;
   private readonly state: HTMLElement;
   private lastReadouts = '';
+  /** Whether the monitor is on screen; it isn't drawn otherwise. */
+  private visible = false;
+  private palette: Palette | null = null;
+  /** What the canvases last showed when idle, so an idle monitor is drawn once and left alone. */
+  private detailIdle = false;
+  private stripIdle = false;
   private readonly history = new Map<ChannelId, Sample[]>(CHANNELS.map((c) => [c, []]));
 
   constructor(
@@ -50,6 +65,17 @@ export class Scope {
     this.selection = host.querySelector('.scope-sel')!;
     this.empty = host.querySelector('.scope-empty')!;
     this.state = host.querySelector('.monitor-state')!;
+
+    new IntersectionObserver(([entry]) => {
+      this.visible = entry.isIntersecting;
+    }).observe(host);
+    DARK.addEventListener('change', () => this.repaint());
+  }
+
+  /** Forget the cached colours and idle drawings, e.g. after a theme change. */
+  private repaint(): void {
+    this.palette = null;
+    this.detailIdle = this.stripIdle = false;
   }
 
   update(): void {
@@ -67,20 +93,23 @@ export class Scope {
       h.push({ t: now, v });
       while (h.length && h[0].t < now - HISTORY_S) h.shift();
     }
+    // Keep recording history, but only draw what can be seen.
+    if (!this.visible) return;
     this.drawDetail();
     this.drawStrip(now);
     this.drawReadouts();
   }
 
-  private colors() {
+  private colors(): Palette {
+    if (this.palette) return this.palette;
     const cs = getComputedStyle(document.documentElement);
-    return {
+    return (this.palette = {
       bg: cs.getPropertyValue('--scope-bg').trim() || '#0d1712',
       grid: cs.getPropertyValue('--scope-grid').trim() || '#1f3328',
       trace: cs.getPropertyValue('--scope-trace').trim() || '#5ef08f',
       dim: cs.getPropertyValue('--scope-dim').trim() || '#2f6b45',
       text: cs.getPropertyValue('--scope-text').trim() || '#9cc9ad',
-    };
+    });
   }
 
   private drawGrid(ctx: CanvasRenderingContext2D, w: number, h: number, bg: string, grid: string): void {
@@ -104,22 +133,26 @@ export class Scope {
     const c = this.colors();
     const ctx = this.detail.getContext('2d')!;
     const { width: w, height: h } = this.detail;
-    this.drawGrid(ctx, w, h, c.bg, c.grid);
 
     const d = this.device;
     const t = d.power === 'on' ? d.activeTreatment : undefined;
     const sel = this.selection;
     const running = d.power === 'on' && [...d.treatments.values()].some((t) => t.status === 'running');
     const state = d.power === 'off' ? 'Unit off' : d.power === 'booting' ? 'Starting' : running ? 'Running' : 'Ready';
-    if (this.state.textContent !== state) this.state.textContent = state;
+    setText(this.state, state);
     this.state.classList.toggle('is-on', d.power === 'on');
     this.empty.hidden = !!t;
     if (!t) {
-      sel.textContent = `CH ${d.selectedChannel}`;
-      this.empty.querySelector('small')!.textContent = d.power === 'on' ? 'Choose Electrotherapy on the unit' : 'Power on the unit to begin';
-      this.caption.textContent = 'Explore a waveform to see how its parameters shape the signal.';
+      setText(sel, `CH ${d.selectedChannel}`);
+      setText(this.empty.querySelector('small')!, d.power === 'on' ? 'Choose Electrotherapy on the unit' : 'Power on the unit to begin');
+      setText(this.caption, 'Explore a waveform to see how its parameters shape the signal.');
+      // Just the grid, under the empty message.
+      if (!this.detailIdle) this.drawGrid(ctx, w, h, c.bg, c.grid);
+      this.detailIdle = true;
       return;
     }
+    this.detailIdle = false;
+    this.drawGrid(ctx, w, h, c.bg, c.grid);
     const idx = t.channels.indexOf(d.selectedChannel);
     const tSec = t.elapsedMs / 1000;
     const out = channelOutput(t, Math.max(0, idx), tSec);
@@ -127,8 +160,8 @@ export class Scope {
     const delivering = t.status === 'running';
     const amp = delivering ? out.level : 1;
 
-    sel.textContent = `Ch ${d.selectedChannel} · ${getWaveform(t.waveform).name}`;
-    this.caption.textContent = `${view.caption} · window ${formatWindow(view.windowS)}${delivering ? '' : ' · preview (not running)'}`;
+    setText(sel, `Ch ${d.selectedChannel} · ${getWaveform(t.waveform).name}`);
+    setText(this.caption, `${view.caption} · window ${formatWindow(view.windowS)}${delivering ? '' : ' · preview (not running)'}`);
 
     const mid = h / 2;
     const scale = (h / 2 - 12) * amp;
@@ -159,6 +192,10 @@ export class Scope {
   }
 
   private drawStrip(now: number): void {
+    // With no output in the window, every lane is flat: draw that once.
+    const idle = CHANNELS.every((ch) => this.history.get(ch)!.every((s) => s.v === 0));
+    if (idle && this.stripIdle) return;
+    this.stripIdle = idle;
     const c = this.colors();
     const ctx = this.strip.getContext('2d')!;
     const { width: w, height: h } = this.strip;
@@ -172,6 +209,16 @@ export class Scope {
       const samples = this.history.get(ch)!;
       ctx.fillStyle = c.text;
       ctx.fillText(`Ch ${ch}`, 8, top + 22);
+      ctx.strokeStyle = c.trace;
+      ctx.lineWidth = 2;
+      if (idle) {
+        // Nothing out: a flat line across the whole window.
+        ctx.beginPath();
+        ctx.moveTo(0, base);
+        ctx.lineTo(w, base);
+        ctx.stroke();
+        return;
+      }
       if (samples.length < 2) return;
       ctx.beginPath();
       ctx.moveTo(w, base);
@@ -185,8 +232,6 @@ export class Scope {
       ctx.fillStyle = c.trace;
       ctx.fill();
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = c.trace;
-      ctx.lineWidth = 2;
       ctx.stroke();
     });
   }
