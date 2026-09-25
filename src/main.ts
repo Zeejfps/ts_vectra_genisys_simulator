@@ -11,14 +11,17 @@ import { DeviceView } from './ui/deviceView';
 import { DeviceView3D } from './ui/deviceView3d';
 import { Scope } from './ui/scope';
 import type { UnitView } from './ui/unitView';
+import { MAX_ZOOM, StageZoom, ZOOM_STEP } from './ui/zoom';
 
 const SPEEDS = [1, 10, 60] as const;
 
 const CLOCK_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>`;
 const POWER_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v7" /><path d="M7.4 7.2a7 7 0 1 0 9.2 0" /></svg>`;
+const ZOOM_OUT_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12" /></svg>`;
+const ZOOM_IN_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12" /><path d="M12 6v12" /></svg>`;
 const INTERRUPT_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.3 3h7.4L21 8.3v7.4L15.7 21H8.3L3 15.7V8.3z" /><path d="M12 7.5v5.5" /><path d="M12 16.5v.01" /></svg>`;
 
-// Power, timer speed and the patient interrupt switch, each floating over a corner of the unit.
+// Power, timer speed, the patient interrupt switch and zoom, each floating over a corner of the unit.
 const UNIT_CONTROLS = `
   <div class="unit-controls" role="group" aria-label="Unit controls">
     <button class="power-switch" role="switch" aria-checked="false" aria-label="Power" title="Power (O)" data-action="power">
@@ -30,6 +33,11 @@ const UNIT_CONTROLS = `
     <button class="tool interrupt" aria-label="Patient Interrupt Switch" title="Patient Interrupt Switch (I)" data-action="interrupt">
       ${INTERRUPT_ICON}
     </button>
+    <div class="zoom" role="group" aria-label="Zoom">
+      <button class="zoom-out" aria-label="Zoom out" title="Zoom out (−)" data-action="zoom-out" disabled>${ZOOM_OUT_ICON}</button>
+      <button class="zoom-level" aria-label="Reset zoom" title="Reset zoom. Pinch or drag to zoom and pan" data-action="zoom-reset" disabled>100%</button>
+      <button class="zoom-in" aria-label="Zoom in" title="Zoom in (+)" data-action="zoom-in">${ZOOM_IN_ICON}</button>
+    </div>
   </div>`;
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -74,6 +82,7 @@ initFeedback(() => {
     otherTreatments: device.treatments.size - (t ? 1 : 0),
     view: view instanceof DeviceView3D ? '3d' : 'flat',
     timerSpeed: speed,
+    zoom: zoom.zoom,
   };
 });
 
@@ -106,6 +115,18 @@ speedBtn.addEventListener('click', () => {
   speedBtn.setAttribute('aria-label', `Timer speed ${speed}×`);
   speedBtn.classList.toggle('fast', speed !== 1);
 });
+
+const zoomOutBtn = stage.querySelector<HTMLButtonElement>('[data-action="zoom-out"]')!;
+const zoomInBtn = stage.querySelector<HTMLButtonElement>('[data-action="zoom-in"]')!;
+const zoomLevel = stage.querySelector<HTMLButtonElement>('[data-action="zoom-reset"]')!;
+const zoom = new StageZoom(stage, view, (level) => {
+  zoomLevel.textContent = `${Math.round(level * 100)}%`;
+  zoomLevel.disabled = zoomOutBtn.disabled = level === 1;
+  zoomInBtn.disabled = level >= MAX_ZOOM;
+});
+zoomInBtn.addEventListener('click', () => zoom.zoomBy(ZOOM_STEP));
+zoomOutBtn.addEventListener('click', () => zoom.zoomBy(1 / ZOOM_STEP));
+zoomLevel.addEventListener('click', () => zoom.reset());
 
 function syncPanel(): void {
   powerBtn.setAttribute('aria-checked', String(device.power !== 'off'));
@@ -152,6 +173,9 @@ window.addEventListener('keydown', (e) => {
     },
     i: () => device.patientInterrupt(),
     o: () => device.togglePower(),
+    '+': () => zoom.zoomBy(ZOOM_STEP),
+    '=': () => zoom.zoomBy(ZOOM_STEP),
+    '-': () => zoom.zoomBy(1 / ZOOM_STEP),
   };
   const action = actions[key];
   if (action) {

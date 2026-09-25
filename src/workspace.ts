@@ -53,6 +53,7 @@ export const WORKSPACE = `
           <div><dt>Right soft keys, top to bottom</dt><dd><kbd>6–0</kbd></dd></div>
           <div><dt>Operator Utilities</dt><dd><kbd>U</kbd></dd></div>
           <div><dt>Power on / off</dt><dd><kbd>O</kbd></dd></div>
+          <div><dt>Zoom in / out</dt><dd><kbd>+</kbd><kbd>−</kbd></dd></div>
         </dl>
         <p class="keyboard-note">Shortcuts are inactive while you type in a form.</p>
       </section>

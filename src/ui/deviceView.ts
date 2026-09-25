@@ -52,12 +52,15 @@ const TEMPLATE = `
 
 export class DeviceView implements UnitView {
   readonly root: HTMLElement;
+  /** Holds the fitted unit and carries the zoom transform. */
+  private readonly zoomBox: HTMLElement;
   private readonly lcd: HTMLElement;
   private readonly knob: HTMLElement;
   private readonly led: HTMLElement;
   private knobAngle = 0;
   private pressedSlot: number | null = null;
   private repeatTimer: number | undefined;
+  private endKnobDrag = () => {};
 
   constructor(
     private readonly host: HTMLElement,
@@ -66,7 +69,10 @@ export class DeviceView implements UnitView {
     this.root = document.createElement('div');
     this.root.className = 'device';
     this.root.innerHTML = TEMPLATE;
-    host.appendChild(this.root);
+    this.zoomBox = document.createElement('div');
+    this.zoomBox.className = 'device-zoom';
+    this.zoomBox.appendChild(this.root);
+    host.appendChild(this.zoomBox);
 
     this.lcd = this.root.querySelector('.lcd')!;
     this.knob = this.root.querySelector('.knob')!;
@@ -93,6 +99,15 @@ export class DeviceView implements UnitView {
   nudgeKnob(detents: number): void {
     this.knobAngle += detents * DEGREES_PER_DETENT;
     this.knob.style.transform = `rotate(${this.knobAngle}deg)`;
+  }
+
+  setViewport(zoom: number, x: number, y: number): void {
+    this.zoomBox.style.transform = zoom === 1 ? '' : `scale(${zoom}) translate(${-x * 100}%, ${-y * 100}%)`;
+  }
+
+  cancelInput(): void {
+    if (this.pressedSlot !== null) this.softKeyUp();
+    this.endKnobDrag();
   }
 
   private fit(): void {
@@ -195,6 +210,7 @@ export class DeviceView implements UnitView {
     const end = () => {
       lastAngle = null;
     };
+    this.endKnobDrag = end;
     knob.addEventListener('pointerup', end);
     knob.addEventListener('pointercancel', end);
 

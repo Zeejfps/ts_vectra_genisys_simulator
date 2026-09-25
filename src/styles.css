@@ -14,6 +14,23 @@
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+  /* Pinches here zoom the unit (ui/zoom.ts), not the page. */
+  touch-action: pan-x pan-y;
+}
+
+.stage.zoomed {
+  cursor: grab;
+}
+
+.stage.panning {
+  cursor: grabbing;
+}
+
+/* The flat view's zoom: scaled by setViewport from the stage's top left. */
+.device-zoom {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
 }
 
 .device {
@@ -292,8 +309,8 @@
   white-space: nowrap;
 }
 
-/* Power (top left), timer speed (top right) and patient interrupt (bottom left),
-   each floating over a corner of the unit. */
+/* Power (top left), timer speed (top right), patient interrupt (bottom left)
+   and zoom (bottom right), each floating over a corner of the unit. */
 .unit-controls {
   --tool-size: 40px;
   --inset: 12px;
@@ -409,6 +426,50 @@
 .unit-controls .interrupt {
   padding: 0;
   color: #c9362b;
+}
+
+/* Zoom out, level (resets) and zoom in, joined into one pill. */
+.unit-controls .zoom {
+  position: absolute;
+  right: var(--inset);
+  bottom: var(--inset);
+  display: flex;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel-bg) 85%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  pointer-events: auto;
+}
+
+.unit-controls .zoom button {
+  position: static;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.unit-controls .zoom .zoom-level {
+  min-width: 3.4em;
+  padding: 0 2px;
+  border-radius: 0;
+}
+
+.unit-controls .zoom button:hover:not(:disabled) {
+  background: var(--ctl-hover);
+}
+
+.unit-controls .zoom button:disabled {
+  cursor: default;
+}
+
+.unit-controls .zoom .zoom-out:disabled,
+.unit-controls .zoom .zoom-in:disabled {
+  opacity: 0.4;
 }
 
 /* ---------- LCD ---------- */

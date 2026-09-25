@@ -72,6 +72,10 @@ export class DeviceView3D implements UnitView {
   /** The framed region in face space: x right, -z up the face, y out of it. */
   private framed = new THREE.Box3();
 
+  /** See UnitView.setViewport. */
+  private viewport = { zoom: 1, x: 0, y: 0 };
+  private cancelPointer = () => {};
+
   private knobAngle = 0;
   private pressedSlot: number | null = null;
   private repeatTimer: number | undefined;
@@ -172,6 +176,15 @@ export class DeviceView3D implements UnitView {
     hardwareAction(this.device, key);
   }
 
+  setViewport(zoom: number, x: number, y: number): void {
+    this.viewport = { zoom, x, y };
+    this.applyViewport();
+  }
+
+  cancelInput(): void {
+    this.cancelPointer();
+  }
+
   // ---------- model ----------
 
   private onModel(model: THREE.Object3D): void {
@@ -246,9 +259,19 @@ export class DeviceView3D implements UnitView {
     this.renderer.setSize(width, height);
     this.css.setSize(width, height);
     this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
+    this.applyViewport();
     this.fit();
     this.draw(performance.now());
+  }
+
+  /** Zoom by rendering a window of the fitted view's frustum across the whole canvas. */
+  private applyViewport(): void {
+    const { zoom, x, y } = this.viewport;
+    const width = this.renderer.domElement.clientWidth;
+    const height = this.renderer.domElement.clientHeight;
+    if (zoom === 1 || !width || !height) this.camera.clearViewOffset();
+    else this.camera.setViewOffset(width, height, x * width, y * height, width / zoom, height / zoom);
+    this.needsRender = true;
   }
 
   private draw(now: number): void {
@@ -388,6 +411,8 @@ export class DeviceView3D implements UnitView {
     );
 
     canvas.addEventListener('pointerdown', (e) => {
+      // A second finger is the start of a pinch, not a press.
+      if (!e.isPrimary) return;
       const id = this.hitTarget(e.pageX, e.pageY, e.pointerType === 'touch');
       if (!id) return;
       e.preventDefault();
@@ -421,7 +446,8 @@ export class DeviceView3D implements UnitView {
         }
       } else if (e.pointerType === 'mouse') {
         const id = this.hit(e.pageX, e.pageY);
-        canvas.style.cursor = id === 'knob' ? 'grab' : id ? 'pointer' : 'default';
+        // Empty areas inherit the stage's cursor (a pan hand when zoomed in).
+        canvas.style.cursor = id === 'knob' ? 'grab' : id ? 'pointer' : '';
       }
     });
 
@@ -430,8 +456,9 @@ export class DeviceView3D implements UnitView {
       if (heldHw) this.holdKey(heldHw, false);
       heldHw = null;
       knobDrag = null;
-      canvas.style.cursor = 'default';
+      canvas.style.cursor = '';
     };
+    this.cancelPointer = end;
     canvas.addEventListener('pointerup', end);
     canvas.addEventListener('pointercancel', end);
 

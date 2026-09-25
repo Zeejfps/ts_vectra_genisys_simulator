@@ -15,6 +15,13 @@ export interface UnitView {
   softKeyUp(): void;
   /** Press a hardware key as if tapped (keyboard shortcuts). */
   pressHardware(key: HardwareKey): void;
+  /**
+   * Show part of the fitted view enlarged: `zoom` times, with the visible
+   * window's top left at (x, y) as fractions of the fitted view's size.
+   */
+  setViewport(zoom: number, x: number, y: number): void;
+  /** Release any key or knob held by a pointer (a pinch took over the touch). */
+  cancelInput(): void;
 }
 
 /** Knob rotation (degrees) per detent. */
