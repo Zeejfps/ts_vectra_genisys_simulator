@@ -5,9 +5,11 @@ import {
   emptySlots,
   slotIndex,
   type Block,
+  type IconName,
   type ScreenModel,
   type Slot,
   type StatusPanel,
+  type StatusRow,
 } from './screenModel';
 import { CHANNELS, type Treatment, type WaveformId } from './types';
 import {
@@ -532,14 +534,19 @@ export function intensityText(t: Treatment, i: number): string {
   return formatNumber(v, wf.intensityStep < 1 ? 0.1 : 1);
 }
 
+function waveformIcon(w: WaveformId): IconName {
+  return w === 'vmsBurst' ? 'vms' : w;
+}
+
 function statusPanel(d: Device): StatusPanel {
   const active = d.activeTreatment;
-  const rows = CHANNELS.map((ch) => {
+  const rows = CHANNELS.map((ch): StatusRow => {
     const t = d.treatmentOn(ch);
     return {
       label: `Ch ${ch}:`,
       status: d.channelStatus(ch),
       intensity: t && t.status !== 'completed' ? intensityText(t, t.channels.indexOf(ch)) : '',
+      icon: t && t.status !== 'completed' ? waveformIcon(t.waveform) : undefined,
       framed: ch === d.selectedChannel,
     };
   });

@@ -31,6 +31,17 @@ export function iconSvg(name: IconName): string {
   return `<svg class="icon icon-wave" viewBox="0 0 24 18" aria-hidden="true">${WAVE_ICONS[name]}</svg>`;
 }
 
+// The status rows use compact glyphs: VMS shows a single biphasic pulse and
+// Russian two pairs of bars, rather than the fuller pictograms of the menu buttons.
+const STATUS_ICONS: Partial<Record<string, string>> = {
+  vms: `<path ${stroke} d="M1 9 L6 9 L6 2 L11 2 L11 16 L16 16 L16 9 L23 9"/>`,
+  russian: `<path ${stroke} d="M4 2 L4 16 M8 2 L8 16 M16 2 L16 16 M20 2 L20 16"/>`,
+};
+
+export function statusIconSvg(name: IconName): string {
+  return `<svg class="icon icon-status" viewBox="0 0 24 18" aria-hidden="true">${STATUS_ICONS[name] ?? WAVE_ICONS[name]}</svg>`;
+}
+
 // Hardware button glyphs.
 export const HOME_GLYPH = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 L22 12 L19 12 L19 21 L14 21 L14 15 L10 15 L10 21 L5 21 L5 12 L2 12 Z"/></svg>`;
 export const BACK_GLYPH = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M1 12 L23 5.5 L23 8.3 L7.5 12 L23 15.7 L23 18.5 Z M11 12 L23 9.5 L23 14.5 Z"/></svg>`;

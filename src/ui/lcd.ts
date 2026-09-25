@@ -1,6 +1,6 @@
 import type { Area, Block, ScreenModel, Slot, StatusPanel } from '../sim/screenModel';
 import { bodySvg, placementSvg } from './figures';
-import { iconSvg } from './icons';
+import { iconSvg, statusIconSvg } from './icons';
 
 // Renders a ScreenModel into the LCD element. The LCD is a fixed-size box; its
 // five button rows line up with the physical soft keys drawn by deviceView.
@@ -105,7 +105,7 @@ function renderStatus(s: StatusPanel): string {
   const rows = s.rows
     .map(
       (r) =>
-        `<div class="st-row ${r.framed ? 'framed' : ''}"><span class="ch">${esc(r.label)}</span><span class="st">${esc(r.status)}</span><span class="iv">${esc(r.intensity)}</span></div>`,
+        `<div class="st-row ${r.framed ? 'framed' : ''}"><span class="ch">${esc(r.label)}</span><span class="st">${esc(r.status)}</span><span class="iv">${esc(r.intensity)}${r.icon ? statusIconSvg(r.icon) : ''}</span></div>`,
     )
     .join('');
   const pad = s.padContact.length

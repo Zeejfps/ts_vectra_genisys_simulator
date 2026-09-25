@@ -684,6 +684,17 @@ body {
   border: 1.5px solid transparent;
 }
 
+.st-row .iv {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.st-row .icon-status {
+  width: 14px;
+  height: 11px;
+}
+
 .st-row.framed {
   border-color: #000;
 }

@@ -49,6 +49,8 @@ export interface StatusRow {
   label: string;
   status: string;
   intensity: string;
+  /** Waveform pictogram shown after the intensity while the channel is in use. */
+  icon?: IconName;
   framed: boolean;
 }
 
