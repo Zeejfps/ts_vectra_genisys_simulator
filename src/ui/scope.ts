@@ -21,6 +21,9 @@ export class Scope {
   private readonly strip: HTMLCanvasElement;
   private readonly caption: HTMLElement;
   private readonly readouts: HTMLElement;
+  private readonly selection: HTMLElement;
+  private readonly empty: HTMLElement;
+  private readonly state: HTMLElement;
   private lastReadouts = '';
   private readonly history = new Map<ChannelId, Sample[]>(CHANNELS.map((c) => [c, []]));
 
@@ -29,16 +32,24 @@ export class Scope {
     private readonly device: Device,
   ) {
     host.innerHTML = `
-      <div class="scope-head"><span>Pulse shape</span><span class="scope-sel"></span></div>
-      <canvas class="scope-detail" width="640" height="220"></canvas>
-      <div class="scope-caption"></div>
-      <div class="scope-head"><span>Output level, last ${HISTORY_S} s</span></div>
-      <canvas class="scope-strip" width="640" height="240"></canvas>
+      <div class="monitor-heading"><h2>Output monitor</h2><span class="monitor-state" role="status">Unit off</span></div>
+      <div class="scope-head"><h3>Pulse shape</h3><span class="scope-sel"></span></div>
+      <div class="scope-screen">
+        <canvas class="scope-detail" width="640" height="220" role="img" aria-label="Selected channel pulse shape; waveform description follows"></canvas>
+        <div class="scope-empty"><span aria-hidden="true">∿</span><strong>Waiting for a waveform</strong><small>Power on the unit to begin</small></div>
+      </div>
+      <p class="scope-caption"></p>
+      <div class="scope-head history-heading"><h3>Output history</h3><span>LAST ${HISTORY_S} S</span></div>
+      <canvas class="scope-strip" width="640" height="240" role="img" aria-label="Simulated output level for channels 1 through 4 over the last 12 seconds; current values follow"></canvas>
+      <div class="scope-head channel-heading"><h3>Channels</h3><span>SIMULATED OUTPUT</span></div>
       <div class="scope-readouts"></div>`;
     this.detail = host.querySelector('.scope-detail')!;
     this.strip = host.querySelector('.scope-strip')!;
     this.caption = host.querySelector('.scope-caption')!;
     this.readouts = host.querySelector('.scope-readouts')!;
+    this.selection = host.querySelector('.scope-sel')!;
+    this.empty = host.querySelector('.scope-empty')!;
+    this.state = host.querySelector('.monitor-state')!;
   }
 
   update(): void {
@@ -97,10 +108,16 @@ export class Scope {
 
     const d = this.device;
     const t = d.power === 'on' ? d.activeTreatment : undefined;
-    const sel = this.detail.parentElement!.querySelector('.scope-sel')!;
+    const sel = this.selection;
+    const running = d.power === 'on' && [...d.treatments.values()].some((t) => t.status === 'running');
+    const state = d.power === 'off' ? 'Unit off' : d.power === 'booting' ? 'Starting' : running ? 'Running' : 'Ready';
+    if (this.state.textContent !== state) this.state.textContent = state;
+    this.state.classList.toggle('is-on', d.power === 'on');
+    this.empty.hidden = !!t;
     if (!t) {
-      sel.textContent = d.power === 'on' ? `Ch ${d.selectedChannel}: no waveform` : 'Unit off';
-      this.caption.textContent = 'Select a waveform to see its pulse shape.';
+      sel.textContent = `CH ${d.selectedChannel}`;
+      this.empty.querySelector('small')!.textContent = d.power === 'on' ? 'Choose Electrotherapy on the unit' : 'Power on the unit to begin';
+      this.caption.textContent = 'Explore a waveform to see how its parameters shape the signal.';
       return;
     }
     const idx = t.channels.indexOf(d.selectedChannel);
@@ -179,7 +196,10 @@ export class Scope {
     const rows: string[] = [];
     for (const ch of CHANNELS) {
       const t = d.power === 'on' ? d.treatmentOn(ch) : undefined;
-      if (!t) continue;
+      if (!t) {
+        rows.push(`<div class="ro-row is-idle"><span class="ro-ch">CH ${ch}</span><span class="ro-phase">IDLE</span><span class="ro-wf">No waveform selected</span></div>`);
+        continue;
+      }
       const i = t.channels.indexOf(ch);
       const out = channelOutput(t, i, t.elapsedMs / 1000);
       const wf = getWaveform(t.waveform);
@@ -190,7 +210,7 @@ export class Scope {
         out.polarity ? out.polarity : '',
       ].filter(Boolean);
       rows.push(
-        `<div class="ro-row"><span class="ro-ch">Ch ${ch}</span><span class="ro-wf">${esc(wf.name)}</span><span class="ro-phase ro-${esc(out.phase)}">${esc(phase)}</span><span class="ro-detail">${esc(parts.join(' · '))}</span></div>`,
+        `<div class="ro-row"><span class="ro-ch">CH ${ch}</span><span class="ro-phase ro-${esc(out.phase)}">${esc(phase)}</span><span class="ro-wf">${esc(wf.name)}</span><span class="ro-detail">${esc(parts.join(' · '))}</span></div>`,
       );
     }
     const html = rows.join('') || '<div class="ro-empty">No channels in use.</div>';

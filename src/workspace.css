@@ -1,0 +1,558 @@
+/* Simulator workspace only. Loaded after the unchanged device stylesheet. */
+
+/* Share the site's header, then fit the workspace into the remaining height. */
+.simulator-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100vh;
+  height: 100dvh;
+}
+
+.simulator-shell > .site-header {
+  width: 100%;
+}
+
+.simulator-shell > #app {
+  height: 100%;
+  min-height: 0;
+}
+
+.panel {
+  min-height: 0;
+  overscroll-behavior-y: contain;
+  padding: 0;
+  gap: 0;
+  background: var(--ui-bg);
+  border-left-color: var(--ui-line);
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-line) transparent;
+}
+
+.panel-head {
+  padding: 25px 24px 16px;
+}
+.workspace-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+}
+.panel-head h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.35px;
+}
+.panel-head p {
+  margin: 8px 0 0;
+  color: var(--ui-muted);
+  font-size: 12px;
+  line-height: 1.6;
+  max-width: 290px;
+}
+
+.workspace-body {
+  padding: 0 24px 22px;
+}
+.workspace-tabs {
+  display: flex;
+  margin: 0 0 20px;
+  border-bottom: 1px solid var(--ui-line);
+}
+.workspace-tabs button {
+  position: relative;
+  flex: 1;
+  min-height: 48px;
+  padding: 0 5px;
+  border: 0;
+  background: transparent;
+  color: var(--ui-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.3;
+  cursor: pointer;
+}
+.workspace-tabs button:hover {
+  color: var(--ui-accent);
+  background: var(--ui-soft);
+}
+.workspace-tabs button[aria-selected='true'] {
+  color: var(--ui-accent);
+  font-weight: 650;
+}
+.workspace-tabs button[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--ui-accent);
+}
+.workspace-pane[hidden],
+.scope-empty[hidden] {
+  display: none;
+}
+
+.panel-card.scope {
+  padding: 17px;
+  border: 1px solid var(--ui-line);
+  border-radius: 14px;
+  background: var(--ui-surface);
+  gap: 11px;
+  box-shadow: var(--ui-shadow);
+}
+.monitor-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--ui-line);
+}
+.monitor-heading h2 {
+  color: var(--ui-ink);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.3px;
+  text-transform: none;
+}
+.monitor-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: var(--ui-soft);
+  color: var(--ui-muted);
+  font:
+    500 10px/1.3 ui-monospace,
+    monospace;
+  white-space: nowrap;
+}
+.monitor-state::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ui-muted);
+}
+.monitor-state.is-on {
+  background: var(--ui-tint);
+  color: var(--ui-accent);
+}
+.monitor-state.is-on::before {
+  background: var(--ui-accent);
+}
+.scope-head {
+  align-items: baseline;
+  gap: 10px;
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  color: var(--ui-muted);
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+.scope-head h3 {
+  margin: 0;
+  color: var(--ui-ink);
+  font:
+    600 12px/1.4 -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.scope-sel {
+  color: var(--ui-muted);
+  font-size: 10px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.scope-screen {
+  position: relative;
+}
+.scope canvas {
+  border-radius: 7px;
+}
+.scope-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #cedace;
+  pointer-events: none;
+  background: radial-gradient(ellipse, #142a24e6 10%, #142a2400 80%);
+}
+.scope-empty > span {
+  color: #bad89c;
+  font:
+    32px/1 Georgia,
+    serif;
+  margin-bottom: 7px;
+}
+.scope-empty strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.scope-empty small {
+  color: #a2b6a9;
+  font-size: 10px;
+  margin-top: 5px;
+}
+.scope-caption {
+  margin: -1px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--ui-muted);
+}
+.history-heading {
+  padding-top: 13px;
+  border-top: 1px solid var(--ui-line);
+  margin-top: 3px;
+}
+.channel-heading {
+  margin-top: 5px;
+}
+.scope-readouts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.ro-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  align-items: center;
+  gap: 6px 4px;
+  padding: 10px;
+  background: var(--ui-tint);
+  border: 1px solid var(--ui-line);
+  border-radius: 7px;
+}
+.ro-row.is-idle {
+  background: var(--ui-bg);
+}
+.ro-ch {
+  color: var(--ui-ink);
+  font:
+    600 10px/1.4 ui-monospace,
+    monospace;
+}
+.ro-phase {
+  justify-self: end;
+  font:
+    500 10px/1.4 ui-monospace,
+    monospace;
+  color: var(--ui-muted);
+  letter-spacing: 0;
+}
+.ro-on,
+.ro-ramp {
+  color: var(--ui-accent);
+}
+.ro-wf {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.ro-detail {
+  grid-column: 1 / -1;
+  color: var(--ui-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.guide-prompt {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 11px;
+  padding: 17px 0 0;
+  border: 0;
+  color: var(--ui-accent);
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+.guide-prompt > span:nth-child(2) {
+  flex: 1;
+}
+.guide-prompt strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+}
+.guide-prompt strong + span {
+  display: block;
+  color: var(--ui-muted);
+  font-size: 10px;
+  margin-top: 3px;
+}
+.guide-prompt:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.guide-prompt-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--ui-line);
+  border-radius: 9px;
+  background: var(--ui-surface);
+  font-size: 19px;
+}
+
+.workspace-footer {
+  margin-top: auto;
+  padding: 19px 24px 20px;
+  border-top: 1px solid var(--ui-line);
+  background: var(--ui-soft);
+}
+.workspace-footer p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  font-weight: 550;
+}
+.workspace-footer small {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ui-muted);
+}
+.education-mark {
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border: 1px solid var(--ui-muted);
+  border-radius: 50%;
+  color: var(--ui-muted);
+  font:
+    italic 13px Georgia,
+    serif;
+}
+.workspace-footer > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 13px;
+}
+.workspace-footer .version {
+  color: var(--ui-muted);
+  font:
+    9px ui-monospace,
+    monospace;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.pane-intro {
+  padding: 5px 0 22px;
+}
+.pane-intro h2 {
+  margin: 12px 0 10px;
+  font:
+    400 30px/1.12 Georgia,
+    'Times New Roman',
+    serif;
+  letter-spacing: -0.9px;
+}
+.pane-intro p {
+  color: var(--ui-muted);
+  font-size: 12px;
+  line-height: 1.75;
+  margin: 0;
+}
+.practice-steps {
+  margin: 0 0 23px;
+  padding: 0;
+  list-style: none;
+  counter-reset: steps;
+}
+.practice-steps li {
+  display: flex;
+  gap: 13px;
+  counter-increment: steps;
+  padding: 16px 0;
+  border-top: 1px solid var(--ui-line);
+}
+.practice-steps li::before {
+  content: '0' counter(steps);
+  display: grid;
+  place-items: center;
+  align-self: start;
+  flex: 0 0 28px;
+  height: 28px;
+  border: 1px solid var(--ui-line);
+  border-radius: 50%;
+  color: var(--ui-accent);
+  font:
+    10px ui-monospace,
+    monospace;
+}
+.practice-steps h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 4px 0 7px;
+}
+.practice-steps p {
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: 12px;
+  line-height: 1.75;
+}
+.practice-steps strong {
+  color: var(--ui-ink);
+  font-weight: 550;
+}
+.panel kbd {
+  display: inline-block;
+  min-width: 23px;
+  padding: 3px 5px;
+  border: 1px solid var(--ui-line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--ui-surface);
+  color: var(--ui-ink);
+  font:
+    10px/1.3 ui-monospace,
+    monospace;
+  text-align: center;
+}
+.resource-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--ui-tint);
+  border: 1px solid var(--ui-line);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 550;
+  text-decoration: none;
+}
+.resource-link:hover {
+  background: var(--ui-soft);
+}
+.shortcut-heading {
+  font:
+    500 9px ui-monospace,
+    monospace;
+  letter-spacing: 1px;
+  color: var(--ui-muted);
+  margin: 8px 0 9px;
+}
+.shortcut-list {
+  margin: 0 0 25px;
+}
+.shortcut-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ui-line);
+}
+.shortcut-list dt {
+  font-size: 12px;
+}
+.shortcut-list dd {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+}
+.keyboard-note {
+  margin: 0;
+  padding: 13px;
+  border-radius: 8px;
+  background: var(--ui-tint);
+  color: var(--ui-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .simulator-shell {
+    display: block;
+    height: auto;
+  }
+  .simulator-shell > #app {
+    height: auto;
+  }
+  .panel-head {
+    display: none;
+  }
+  .workspace-body {
+    order: 3;
+    padding: 0;
+  }
+  .workspace-tabs {
+    margin-bottom: 16px;
+  }
+  .workspace-tabs button {
+    min-height: 48px;
+    font-size: 13px;
+  }
+  .workspace-footer {
+    order: 4;
+    margin: 10px 0 0;
+    padding: 20px max(16px, env(safe-area-inset-left));
+  }
+  .workspace-footer > div {
+    margin-top: 14px;
+  }
+  .panel-card.scope {
+    padding: 20px;
+  }
+  .scope-head h3 {
+    font-size: 12px;
+  }
+  .scope-head,
+  .scope-sel {
+    font-size: 10px;
+  }
+  .scope-caption {
+    font-size: 12px;
+  }
+  .scope-empty strong {
+    font-size: 13px;
+  }
+  .scope-empty small {
+    font-size: 11px;
+  }
+  .ro-row {
+    padding: 13px;
+  }
+  .ro-ch,
+  .ro-phase {
+    font-size: 10px;
+  }
+  .guide-prompt strong {
+    font-size: 13px;
+  }
+  .guide-prompt strong + span {
+    font-size: 12px;
+  }
+  .practice-steps p,
+  .pane-intro p {
+    font-size: 14px;
+  }
+  .practice-steps h3 {
+    font-size: 15px;
+  }
+  .shortcut-list dt {
+    font-size: 14px;
+  }
+}

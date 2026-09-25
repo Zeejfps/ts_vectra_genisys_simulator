@@ -1,0 +1,646 @@
+/* The surrounding site has its own tokens. The device, stage, LCD and floating
+   controls retain their original styles and inherited theme variables. */
+:root {
+  --ui-bg: #f5f5f0;
+  --ui-surface: #fffefa;
+  --ui-soft: #eeefe8;
+  --ui-line: #dfe3d9;
+  --ui-ink: #233a34;
+  --ui-muted: #68766e;
+  --ui-accent: #26624f;
+  --ui-tint: #e7efe5;
+  --ui-shadow: 0 4px 18px rgb(27 50 37 / 3%);
+  --scope-bg: #142a24;
+  --scope-grid: #233b32;
+  --scope-trace: #b8eb97;
+  --scope-dim: #7da88c;
+  --scope-text: #adc1b4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ui-bg: #18221e;
+    --ui-surface: #1d2a24;
+    --ui-soft: #25332b;
+    --ui-line: #34453b;
+    --ui-ink: #e8ede4;
+    --ui-muted: #abb9ae;
+    --ui-accent: #b9d99f;
+    --ui-tint: #2e4334;
+    --ui-shadow: none;
+  }
+}
+
+:root[data-theme='dark'] {
+  --ui-bg: #18221e;
+  --ui-surface: #1d2a24;
+  --ui-soft: #25332b;
+  --ui-line: #34453b;
+  --ui-ink: #e8ede4;
+  --ui-muted: #abb9ae;
+  --ui-accent: #b9d99f;
+  --ui-tint: #2e4334;
+  --ui-shadow: none;
+}
+
+body {
+  background: var(--ui-bg);
+}
+
+.panel,
+.site-header,
+.site-footer,
+.prose,
+.report,
+.page-outline {
+  color: var(--ui-ink);
+}
+
+:where(.panel, .site-header, .site-footer, .prose, .report, .page-outline)
+  :is(a, button, summary, input, textarea, select):focus-visible,
+.workspace-pane:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 4px;
+}
+
+:where(.panel, .site-header, .site-footer, .prose, .report, .page-outline) a {
+  color: var(--ui-accent);
+  text-underline-offset: 4px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--ui-ink);
+}
+
+.brand-symbol {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--ui-line);
+  border-radius: 12px;
+  color: var(--ui-accent);
+  background: var(--ui-tint);
+}
+
+.brand-symbol svg {
+  width: 29px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.brand-wordmark {
+  font-size: 19px;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.7px;
+}
+.brand-wordmark > span {
+  display: block;
+  margin-top: 4px;
+  color: var(--ui-muted);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.25px;
+  text-transform: uppercase;
+}
+.lab-label,
+.eyebrow {
+  color: var(--ui-accent);
+  font:
+    500 10px/1.5 ui-monospace,
+    'SF Mono',
+    Menlo,
+    monospace;
+  letter-spacing: 1.2px;
+}
+.lab-label {
+  margin-left: auto;
+  font-size: 8px;
+  letter-spacing: 0.7px;
+}
+
+.site-nav {
+  gap: 2px;
+}
+.site-nav a {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ui-muted);
+  padding: 9px 11px;
+  font-size: 12px;
+  font-weight: 500;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+.site-nav a:hover {
+  background: var(--ui-soft);
+  color: var(--ui-ink);
+}
+.site-nav a[aria-current='page'] {
+  background: var(--ui-tint);
+  color: var(--ui-accent);
+  font-weight: 650;
+}
+.is-idle .ro-wf {
+  color: var(--ui-muted);
+  font-size: 10px;
+}
+.report-button {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  padding: 4px 0;
+  font-size: 11px;
+  color: var(--ui-muted);
+}
+.report-button:hover {
+  color: var(--ui-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.report-button svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Reading and reference pages share the lab's quieter, editorial treatment. */
+.site-header {
+  max-width: 1120px;
+  gap: 20px;
+  padding: calc(25px + env(safe-area-inset-top)) 32px 25px;
+  border-color: var(--ui-line);
+}
+.site-header .site-nav {
+  gap: 3px;
+}
+.site-header .site-nav a {
+  font-size: 12px;
+  padding: 10px;
+}
+.site-footer {
+  max-width: 1120px;
+  padding: 30px 32px calc(35px + env(safe-area-inset-bottom));
+  border-color: var(--ui-line);
+}
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.site-footer .site-nav a {
+  font-size: 11px;
+}
+.site-footer .report-button {
+  margin: 0;
+}
+.site-footer p {
+  max-width: 740px;
+  margin-top: 24px;
+  font-size: 11px;
+  color: var(--ui-muted);
+  line-height: 1.8;
+}
+
+.prose {
+  max-width: 1120px;
+  padding: 64px 32px 80px;
+  font-size: 15px;
+  line-height: 1.85;
+}
+.prose h1 {
+  font:
+    400 clamp(34px, 4vw, 51px)/1.12 Georgia,
+    'Times New Roman',
+    serif;
+  letter-spacing: -1.9px;
+  margin: 0 0 25px;
+  text-wrap: balance;
+}
+.prose .lede {
+  font-size: 18px;
+  line-height: 1.75;
+  color: var(--ui-muted);
+  margin-bottom: 26px;
+}
+.prose h2 {
+  font-size: 23px;
+  line-height: 1.4;
+  letter-spacing: -0.65px;
+  margin-top: 43px;
+  margin-bottom: 16px;
+  padding-top: 26px;
+  border-top: 1px solid var(--ui-line);
+  scroll-margin-top: 25px;
+}
+.prose h3 {
+  margin-top: 28px;
+  color: var(--ui-accent);
+  font-size: 16px;
+}
+.prose p,
+.prose ul,
+.prose ol,
+.prose dl {
+  margin-bottom: 19px;
+}
+.prose li {
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+.prose li::marker {
+  color: var(--ui-accent);
+}
+.prose dt {
+  margin-top: 20px;
+  color: var(--ui-ink);
+}
+.prose dd {
+  color: var(--ui-muted);
+}
+.prose code {
+  background: var(--ui-soft);
+}
+.prose blockquote {
+  margin: 24px 0;
+  padding: 16px 22px;
+  border-left: 3px solid var(--ui-accent);
+  background: var(--ui-tint);
+}
+.prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+.table-wrap {
+  border-color: var(--ui-line);
+  background: var(--ui-surface);
+  border-radius: 10px;
+}
+.table-wrap th,
+.table-wrap td {
+  padding: 13px 15px;
+  border-color: var(--ui-line);
+  font-size: 13px;
+}
+.table-wrap th {
+  background: var(--ui-soft);
+}
+.table-wrap tbody tr:hover {
+  background: var(--ui-bg);
+}
+.prose .keys dt {
+  color: var(--ui-accent);
+  font-size: 13px;
+}
+.prose .keys dd {
+  color: var(--ui-ink);
+  font-size: 14px;
+}
+.button,
+:root[data-theme='dark'] .button {
+  border-radius: 7px;
+  background: var(--ui-accent);
+  color: var(--ui-surface);
+  padding: 11px 18px;
+  font-size: 13px;
+  font-weight: 550;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .button {
+    color: var(--ui-surface);
+  }
+}
+.button:hover {
+  filter: brightness(0.93);
+}
+.page-eyebrow {
+  display: block;
+  margin-bottom: 20px;
+}
+.doc-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 60px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+.doc-layout .prose {
+  width: 100%;
+  min-width: 0;
+  padding-inline: 0;
+  margin: 0;
+}
+.page-outline {
+  position: sticky;
+  top: 32px;
+  align-self: start;
+  margin: 65px 0 35px;
+  padding-left: 21px;
+  border-left: 1px solid var(--ui-line);
+  max-height: calc(100dvh - 64px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.page-outline h2 {
+  margin: 0 0 16px;
+  font:
+    500 10px ui-monospace,
+    monospace;
+  letter-spacing: 1.4px;
+  color: var(--ui-muted);
+}
+.page-outline a {
+  display: block;
+  padding: 7px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ui-muted);
+  text-decoration: none;
+}
+.page-outline a:hover,
+.page-outline a[aria-current='location'] {
+  color: var(--ui-accent);
+  text-decoration: underline;
+}
+.page-outline .back-to-simulator {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 22px;
+  padding-top: 19px;
+  border-top: 1px solid var(--ui-line);
+  color: var(--ui-accent);
+  font-weight: 600;
+}
+
+.home-intro {
+  padding-block: 75px;
+}
+.home-intro h2 {
+  margin: 12px 0 25px;
+  padding: 0;
+  border: 0;
+  font:
+    400 clamp(32px, 4vw, 48px)/1.12 Georgia,
+    'Times New Roman',
+    serif;
+  letter-spacing: -1.5px;
+}
+.home-intro > p {
+  color: var(--ui-muted);
+  max-width: 680px;
+}
+.prose .cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+  margin: 35px 0 0;
+}
+.prose .cards li {
+  padding: 0;
+  margin: 0;
+}
+.cards a {
+  position: relative;
+  padding: 25px;
+  border: 1px solid var(--ui-line);
+  border-radius: 10px;
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow);
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+.cards a::after {
+  content: '↗';
+  position: absolute;
+  top: 21px;
+  right: 21px;
+  color: var(--ui-accent);
+}
+.cards a:hover {
+  border-color: var(--ui-accent);
+  transform: translateY(-3px);
+}
+.cards strong {
+  color: var(--ui-ink);
+  margin-bottom: 10px;
+  font-size: 15px;
+  padding-right: 20px;
+}
+.cards span {
+  color: var(--ui-muted);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.menu-toggle {
+  color: var(--ui-ink);
+  border: 1px solid var(--ui-line);
+  background: var(--ui-surface);
+  border-radius: 9px;
+}
+.report {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-line);
+  border-radius: 16px;
+  box-shadow: 0 24px 90px #102b2640;
+}
+.report::backdrop {
+  background: #0b201c80;
+  backdrop-filter: blur(5px);
+}
+.report-form,
+.report-done {
+  padding: 28px;
+  gap: 19px;
+}
+.report h2 {
+  font-size: 23px;
+  letter-spacing: -0.7px;
+}
+.report p,
+.report label small {
+  color: var(--ui-muted);
+}
+.report p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.report-close {
+  border-color: var(--ui-line);
+  background: var(--ui-soft);
+  color: var(--ui-ink);
+}
+.report :is(input, textarea, select) {
+  background: var(--ui-bg);
+  border-color: var(--ui-line);
+  color: var(--ui-ink);
+  border-radius: 7px;
+}
+.report :is(input, textarea)::placeholder {
+  color: var(--ui-muted);
+  opacity: 1;
+}
+.report label > span {
+  font-size: 12px;
+}
+.report .button {
+  min-height: 42px;
+}
+
+@media (max-width: 1100px) and (min-width: 901px) {
+  .site-header {
+    gap: 16px;
+  }
+  .site-header .site-nav a {
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Only the surrounding workspace changes. The original stage rules and
+     mobile dimensions in styles.css remain untouched. */
+  #site-nav.open {
+    border-color: var(--ui-line);
+    background: var(--ui-surface);
+    border-radius: 10px;
+  }
+  #site-nav.open a {
+    color: var(--ui-muted);
+    font-size: 14px;
+    border-color: var(--ui-line);
+    justify-content: flex-start;
+  }
+  #site-nav.open a[aria-current='page'] {
+    color: var(--ui-accent);
+    box-shadow: inset 3px 0 0 var(--ui-accent);
+    background: var(--ui-tint);
+  }
+  .ro-wf,
+  .is-idle .ro-wf,
+  .ro-detail {
+    font-size: 11px;
+  }
+  .guide-pane,
+  .keys-pane {
+    max-width: 600px;
+    margin: auto;
+  }
+  .site-header {
+    padding: 20px;
+  }
+  .site-header .menu-toggle {
+    margin-left: auto;
+  }
+  .site-header #site-nav.open {
+    margin-top: 0;
+  }
+  .doc-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0 24px;
+  }
+  .doc-layout .prose {
+    order: 1;
+    padding-top: 35px;
+  }
+  .page-outline {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    margin: 24px 0 0;
+    padding: 0 0 18px;
+    border: 0;
+    border-bottom: 1px solid var(--ui-line);
+    max-height: none;
+  }
+  .page-outline h2 {
+    margin-bottom: 8px;
+  }
+  .page-outline nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 4px 2px 8px;
+  }
+  .page-outline nav a {
+    flex: none;
+    max-width: 240px;
+    padding: 6px 10px;
+    border: 1px solid var(--ui-line);
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .page-outline .back-to-simulator {
+    display: none;
+  }
+  .prose {
+    padding: 45px 24px;
+  }
+  .prose h1 {
+    letter-spacing: -1px;
+  }
+  .prose .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .site-footer {
+    padding-inline: 24px;
+  }
+  .site-footer .site-nav a {
+    padding-inline: 8px;
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .prose .cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .cards a {
+    padding: 21px;
+  }
+  .prose {
+    font-size: 14px;
+  }
+  .prose .lede {
+    font-size: 16px;
+  }
+  .prose h2 {
+    font-size: 21px;
+  }
+  .site-header .brand-wordmark {
+    font-size: 17px;
+  }
+  .brand-wordmark > span {
+    font-size: 9px;
+  }
+  .report-form,
+  .report-done {
+    padding: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-nav a,
+  .cards a {
+    transition: none;
+  }
+  .cards a:hover {
+    transform: none;
+  }
+}

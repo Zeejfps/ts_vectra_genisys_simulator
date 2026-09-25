@@ -1,5 +1,4 @@
-// Pages of the site. Used by the build (page inputs, sitemap, nav injection)
-// and by the simulator page's panel nav, so the list lives in one place.
+// Pages of the site. Shared by the build, sitemap and navigation on every page.
 
 export const SITE_URL = 'https://estim.builtbyzee.com';
 
@@ -39,6 +38,12 @@ export function navLinks(current: string): string {
     (p) => `<a href="${p.path}"${p.path === current ? ' aria-current="page"' : ''}>${p.nav}</a>`,
   ).join('');
 }
+
+/** Shared identity for the workspace and reference pages. */
+export const BRAND = `<a class="brand" href="/" aria-label="Vectra Genisys Simulator home">
+  <span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 17h6l3-9 6 17 3-8h6" /></svg></span>
+  <span class="brand-wordmark">Vectra Genisys<span>Electrotherapy simulator</span></span>
+</a>`;
 
 /** Button that opens the site nav on narrow screens (see `initMenu`). */
 export const MENU_TOGGLE = `<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
