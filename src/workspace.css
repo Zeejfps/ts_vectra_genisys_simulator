@@ -591,8 +591,13 @@
   .workspace-footer > div {
     margin-top: 14px;
   }
+  /* The sheet is already the container, so no card around the monitor. */
   .panel-card.scope {
-    padding: 20px;
+    padding: 4px 0 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
   }
   .scope-head h3 {
     font-size: 12px;
