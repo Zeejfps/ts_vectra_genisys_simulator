@@ -309,8 +309,8 @@
   white-space: nowrap;
 }
 
-/* Power (top left), timer speed (top right), patient interrupt (bottom left)
-   and zoom (bottom right), each floating over a corner of the unit. */
+/* Power (top left), timer speed (top right), zoom (bottom left) and patient
+   interrupt (bottom right), each floating over a corner of the unit. */
 .unit-controls {
   --tool-size: 40px;
   --inset: 12px;
@@ -357,7 +357,7 @@
 
 .unit-controls .interrupt {
   bottom: var(--inset);
-  left: var(--inset);
+  right: var(--inset);
 }
 
 .unit-controls button:hover {
@@ -431,7 +431,7 @@
 /* Zoom out, level (resets) and zoom in, joined into one pill. */
 .unit-controls .zoom {
   position: absolute;
-  right: var(--inset);
+  left: var(--inset);
   bottom: var(--inset);
   display: flex;
   border: 1px solid var(--panel-border);

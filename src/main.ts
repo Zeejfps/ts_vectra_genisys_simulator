@@ -21,7 +21,7 @@ const ZOOM_OUT_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 1
 const ZOOM_IN_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12" /><path d="M12 6v12" /></svg>`;
 const INTERRUPT_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.3 3h7.4L21 8.3v7.4L15.7 21H8.3L3 15.7V8.3z" /><path d="M12 7.5v5.5" /><path d="M12 16.5v.01" /></svg>`;
 
-// Power, timer speed, the patient interrupt switch and zoom, each floating over a corner of the unit.
+// Power, timer speed, zoom and the patient interrupt switch, each floating over a corner of the unit.
 const UNIT_CONTROLS = `
   <div class="unit-controls" role="group" aria-label="Unit controls">
     <button class="power-switch" role="switch" aria-checked="false" aria-label="Power" title="Power (O)" data-action="power">
@@ -30,14 +30,14 @@ const UNIT_CONTROLS = `
     <button class="tool speed" aria-label="Timer speed 1×" title="Timer speed: press to cycle 1×, 10×, 60×" data-action="speed">
       ${CLOCK_ICON}<span class="speed-value">1×</span>
     </button>
-    <button class="tool interrupt" aria-label="Patient Interrupt Switch" title="Patient Interrupt Switch (I)" data-action="interrupt">
-      ${INTERRUPT_ICON}
-    </button>
     <div class="zoom" role="group" aria-label="Zoom">
       <button class="zoom-out" aria-label="Zoom out" title="Zoom out (−)" data-action="zoom-out" disabled>${ZOOM_OUT_ICON}</button>
       <button class="zoom-level" aria-label="Reset zoom" title="Reset zoom. Pinch or drag to zoom and pan" data-action="zoom-reset" disabled>100%</button>
       <button class="zoom-in" aria-label="Zoom in" title="Zoom in (+)" data-action="zoom-in">${ZOOM_IN_ICON}</button>
     </div>
+    <button class="tool interrupt" aria-label="Patient Interrupt Switch" title="Patient Interrupt Switch (I)" data-action="interrupt">
+      ${INTERRUPT_ICON}
+    </button>
   </div>`;
 
 const app = document.querySelector<HTMLElement>('#app')!;
