@@ -32,9 +32,9 @@ export const WORKSPACE = `
       <section id="pane-guide" class="workspace-pane guide-pane" role="tabpanel" aria-labelledby="tab-guide" tabindex="0" hidden>
         <div class="pane-intro"><span class="eyebrow">GETTING STARTED</span><h2>A little practice.<br>A lot more familiar.</h2><p>Use the controls on the replica just as you would on the real unit.</p></div>
         <ol class="practice-steps">
-          <li><div><h3>Power up the unit</h3><p>Use the power switch at the top left of the Device area, or press <kbd>O</kbd>. Let the home screen load.</p></div></li>
+          <li><div><h3>Power up the unit</h3><p>Use the power switch at the top left of the Device area. Let the home screen load.</p></div></li>
           <li><div><h3>Choose a waveform</h3><p>Press <strong>Electrotherapy</strong>, then select a waveform using the keys beside the screen.</p></div></li>
-          <li><div><h3>Make it your own</h3><p>Use <strong>Edit</strong> to explore the parameters. Turn the intensity knob by dragging, scrolling over it, or pressing <kbd>↑</kbd> / <kbd>↓</kbd>.</p></div></li>
+          <li><div><h3>Make it your own</h3><p>Use <strong>Edit</strong> to explore the parameters. Turn the intensity knob by dragging or scrolling over it.</p></div></li>
           <li><div><h3>Start and observe</h3><p>Press <strong>Start</strong> on the unit, then open the Monitor tab to see the simulated output. Try changing a parameter and watch what happens.</p></div></li>
         </ol>
         <a class="resource-link" href="/how-to-use/">Explore the full guide ${ARROW}</a>
