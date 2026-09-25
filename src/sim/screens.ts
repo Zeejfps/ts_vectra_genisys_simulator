@@ -188,14 +188,18 @@ export function channelsLabel(t: Treatment): string {
 function reviewScreen(d: Device, m: ScreenModel, t: Treatment): ScreenModel {
   const wf = getWaveform(t.waveform);
   const completed = t.status === 'completed';
-  m.title = `${completed ? 'Completed ' : ''}Treatment Review ${channelsLabel(t)}`;
+  m.title = t.protocol && !completed
+    ? `${t.protocol}: ${channelsLabel(t)}`
+    : `${completed ? 'Completed ' : ''}Treatment Review ${channelsLabel(t)}`;
 
   if (completed) {
     set(m, 'left', 1, slot('Save to\nPatient Card', () => d.showMessage(['No Patient Data Card inserted.', 'Press any button to continue...'])));
     set(m, 'right', 1, slot('Start New\nTreatment', () => d.startNewTreatment(t)));
   } else {
-    set(m, 'left', 1, slot('Waveform\nDescription', () =>
-      d.push({ kind: 'text', title: 'Waveform Description', lines: wrapParagraphs([...wf.description, '', ...wf.terms]), page: 0 })));
+    // Protocols explain the waveform choice under "Waveform Rationale".
+    const info = t.protocol ? 'Waveform Rationale' : 'Waveform Description';
+    set(m, 'left', 1, slot(info.replace(' ', '\n'), () =>
+      d.push({ kind: 'text', title: info, lines: wrapParagraphs([...wf.description, '', ...wf.terms]), page: 0 })));
     set(m, 'right', 1, slot('Electrode\nPlacement', () => d.push({ kind: 'placement', tid: t.id, page: 0 })));
   }
 
@@ -271,13 +275,16 @@ function numberEditor(d: Device, m: ScreenModel, t: Treatment, editing: { key: s
   // Layout follows the Treatment Time editor photographed in the Laser Module manual:
   // title bar shows the parameter, a small value box, arrows on the right rows 1-3.
   m.title = def.label;
+  const vector = editing.key === 'vectorPosition';
   m.blocks.push({
     type: 'valueEditor',
-    area: { rows: [1, 3], cols: [1, 1] },
+    area: { rows: vector ? [1, 1] : [1, 3], cols: [1, 1] },
     label: def.label,
     value: formatParamValue(def, editing.value),
     range: `Range: ${formatNumber(min, def.step)}-${formatNumber(max, def.step)}`,
   });
+  // The Vector Position editor draws the interference pattern under the value.
+  if (vector) m.blocks.push({ type: 'vector', area: { rows: [2, 4], cols: [1, 1] }, degrees: editing.value });
   set(m, 'right', 1, slot('', () => d.stepNumberEdit(1), { icon: 'up', repeat: true }));
   set(m, 'right', 2, slot('', () => d.acceptNumberEdit(), { icon: 'accept' }));
   set(m, 'right', 3, slot('', () => d.stepNumberEdit(-1), { icon: 'down', repeat: true }));
@@ -490,45 +497,68 @@ function protocolBodyScreen(d: Device, m: ScreenModel): ScreenModel {
   return m;
 }
 
-const PROTOCOL_ESTIM: [side: 'left' | 'right', row: number, indication: string][] = [
-  ['left', 1, 'Acute Pain'],
-  ['right', 1, 'Chronic Pain'],
-  ['left', 2, 'Increase Local Circulation'],
-  ['right', 2, 'Relax Muscle Spasm'],
-  ['left', 3, 'Prevent/Retard Disuse Atrophy'],
-  ['right', 3, 'Muscle Re-education'],
-];
+type ProtocolSlot = [side: 'left' | 'right', row: number, name: string];
+
+// Electrotherapy rows 1-3 name Indications; Ultrasound rows 4-5 are button labels.
+interface ProtocolList {
+  estim: readonly ProtocolSlot[];
+  ultrasound: readonly ProtocolSlot[];
+}
+
+// The full list, as photographed for Shoulder in the user manual (p. 94).
+const FULL_PROTOCOLS: ProtocolList = {
+  estim: [
+    ['left', 1, 'Acute Pain'],
+    ['right', 1, 'Chronic Pain'],
+    ['left', 2, 'Increase Local Circulation'],
+    ['right', 2, 'Relax Muscle Spasm'],
+    ['left', 3, 'Prevent/Retard Disuse Atrophy'],
+    ['right', 3, 'Muscle Re-education'],
+  ],
+  ultrasound: [
+    ['left', 4, 'Chronic\nPain'],
+    ['right', 4, 'Sub-chronic\nPain'],
+    ['left', 5, 'Scar Tissue /\nAdhesions'],
+    ['right', 5, 'Joint Contract. w/\nAdhesive Capsulitis'],
+  ],
+};
+
+// The list varies by body area. Only Cervical has been seen besides Shoulder
+// ("Vectra Genisys Part1" video, 6:02); other areas use the full list.
+const PROTOCOLS_BY_AREA: Record<string, ProtocolList> = {
+  Cervical: {
+    estim: FULL_PROTOCOLS.estim.slice(0, 4),
+    ultrasound: FULL_PROTOCOLS.ultrasound.slice(0, 3),
+  },
+};
 
 function protocolListScreen(d: Device, m: ScreenModel, area: string): ScreenModel {
   m.title = `Clinical Protocols: ${area}`;
   m.blocks.push({ type: 'sectionLabel', row: 1, text: 'Electrotherapy' });
   m.blocks.push({ type: 'sectionLabel', row: 4, text: 'Ultrasound' });
-  for (const [side, row, name] of PROTOCOL_ESTIM) {
+  const list = PROTOCOLS_BY_AREA[area] ?? FULL_PROTOCOLS;
+  for (const [side, row, name] of list.estim) {
     const ind = INDICATIONS.find((i) => i.label === name) as Indication;
-    const source = `Protocol: ${area} - ${ind.label}`;
+    const title = `${area} ${ind.label}`;
     const asksElectrodes = ind.waveform === 'ifc' || ind.waveform === 'premod';
     set(m, side, row, slot(ind.button, () =>
-      asksElectrodes ? d.push({ kind: 'electrodeCount', indication: ind, source }) : d.loadIndication(ind, source)));
+      asksElectrodes ? d.push({ kind: 'electrodeCount', indication: ind, title }) : d.loadProtocol(ind, title)));
   }
   const us = noApplicator(d);
-  set(m, 'left', 4, slot('Chronic\nPain', us));
-  set(m, 'right', 4, slot('Sub-chronic\nPain', us));
-  set(m, 'left', 5, slot('Scar Tissue /\nAdhesions', us));
-  set(m, 'right', 5, slot('Joint Contract. w/\nAdhesive Capsulitis', us));
+  for (const [side, row, label] of list.ultrasound) set(m, side, row, slot(label, us));
   return m;
 }
 
 // Clinical Protocols ask how many electrodes will be used: four runs 4-pole
-// interferential, two runs premodulated on one channel.
+// interferential, two runs premodulated on one channel ("Vectra Genisys Part1" video, 6:12).
 function electrodeCountScreen(d: Device, m: ScreenModel, r: Extract<Route, { kind: 'electrodeCount' }>): ScreenModel {
-  m.title = r.source.replace('Protocol: ', 'Clinical Protocols: ');
-  m.blocks.push({ type: 'text', area: { rows: [1, 3], cols: [1, 2] }, tone: 'white', lines: ['Select the number of electrodes', 'to be used for this treatment.'] });
-  const load = (waveform: WaveformId) => () => {
+  m.title = r.title;
+  const load = (waveform: WaveformId, count: number) => () => {
     d.stack.pop();
-    d.loadIndication({ ...r.indication, waveform }, r.source);
+    d.loadProtocol({ ...r.indication, waveform }, `${r.title} ${count} Electrodes`);
   };
-  set(m, 'left', 4, slot('2 Electrodes', load('premod')));
-  set(m, 'right', 4, slot('4 Electrodes', load('ifc')));
+  set(m, 'right', 1, slot('4\nElectrodes', load('ifc', 4)));
+  set(m, 'right', 2, slot('2\nElectrodes', load('premod', 2)));
   return m;
 }
 

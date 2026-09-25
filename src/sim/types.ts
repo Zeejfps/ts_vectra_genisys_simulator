@@ -37,6 +37,8 @@ export interface Treatment {
   endIntensity?: number[];
   /** Set when a treatment was loaded from an Indication, shown in the review screen. */
   source?: string;
+  /** Clinical Protocol name, e.g. "Cervical Acute Pain 2 Electrodes"; titles the review screen. */
+  protocol?: string;
 }
 
 export type VolumeLevel = 'Off' | 'X-Low' | 'Low' | 'Med' | 'High' | 'X-High';

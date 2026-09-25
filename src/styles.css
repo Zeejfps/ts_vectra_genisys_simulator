@@ -486,6 +486,28 @@ body {
   overflow: hidden;
 }
 
+.lcd-vector {
+  z-index: 0;
+  margin: 6px auto;
+  aspect-ratio: 1;
+  height: calc(100% - 12px);
+  background: #b2f2a3;
+  border: 1px solid #1e1e1e;
+}
+
+.lcd-vector svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #1d2b39;
+  stroke-width: 1.5;
+}
+
+.lcd-vector .axis {
+  stroke-width: 0.6;
+  stroke-dasharray: 2 2;
+}
+
 .lcd-text.columns {
   display: grid;
   grid-template-columns: max-content 1fr;

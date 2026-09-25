@@ -97,7 +97,10 @@ These sources were checked in the second research pass:
 - User Protocols with none saved: "No User Protocols".
 
 **Other**
-- Clinical Protocols ask for the number of electrodes (2 or 4) for stim protocols (video).
+- Clinical Protocols ask for the number of electrodes for IFC/Premod protocols. The screen is titled with the protocol (e.g. "Cervical Acute Pain") and has **4 Electrodes** at right row 1 and **2 Electrodes** at right row 2, with no other text ("Vectra Genisys Part1" video, 6:12).
+- A protocol's Treatment Review is titled with the protocol, e.g. "Cervical Acute Pain 2 Electrodes: Ch 1". Its left row 1 button reads **Waveform Rationale** (UM p.95, video 6:20).
+- The Clinical Protocols list varies by body area. Shoulder shows all six e-stim and four ultrasound buttons (UM p.94). Cervical shows only Acute Pain, Chronic Pain, Increase Local Circulation and Relax Muscle Spasm, plus ultrasound Chronic Pain, Sub-chronic Pain and Scar Tissue / Adhesions (video, 6:02).
+- **IFC Vector Scan** reads Off, Manual, "Automatic 40%" and presumably "Automatic 100%" (the manual writes 40% / 100%). Manual adds **Vector Position** (45 deg., range 0–90) at right row 2; its editor draws a clover-shaped interference pattern. Automatic 40% varies each channel's intensity down to 60% of the setting, the two channels out of step (e.g. 0.6 / 0.9 readouts) ("IFC Interferential" video, 1:02–1:50).
 - High Volt frequency changes in steps of 10 (video).
 
 ## Remaining approximations
@@ -105,6 +108,8 @@ These sources were checked in the second research pass:
 These points are still unconfirmed or guessed:
 - Defaults for Asym/Sym Biphasic and DC.
 - Indication presets and Clinical Protocol parameters. No source gives these values.
+- Clinical Protocol lists for body areas other than Shoulder and Cervical use the full Shoulder list.
+- Vector Scan timing (a 6 s cycle), the Vector Position step (1 deg.), and which channel 0 deg. favours are guesses.
 - **VMS FR** appears on the "Select VMS Type" screen (VMS, VMS Burst, VMS FR stacked on the left; TKA video, 1:31) but is not simulated; its icon is approximate.
 - Review-list order for Asym/Sym Biphasic, High Volt, Microcurrent and DC is not seen in footage and follows the parameter order.
 - Start/Pause/Stop act on the selected (framed) channel only. No source says whether they act on all channels.

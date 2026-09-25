@@ -45,6 +45,8 @@ export type Block =
   | { type: 'keyboard'; area: Area; rows: string[]; framed: { row: number; col: number } | null; hint: string }
   | { type: 'figure'; area: Area; figure: 'body' }
   | { type: 'contact'; area: Area; level: number }
+  /** IFC interference pattern for the Vector Position editor, rotated by `degrees`. */
+  | { type: 'vector'; area: Area; degrees: number }
   | { type: 'sectionLabel'; row: number; text: string };
 
 export interface StatusRow {

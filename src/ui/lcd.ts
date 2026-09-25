@@ -100,6 +100,13 @@ function renderBlock(b: Block, narrow: boolean): string {
         <div class="kb-hint">${esc(b.hint)}</div></div>`;
     case 'figure':
       return `<div class="lcd-figure" style="grid-row:1 / 6;grid-column:2">${bodySvg()}</div>`;
+    case 'vector': {
+      // Two crossed lobes (the interference "clover"), turned by the position so 45 deg. is the even X.
+      const lobe = 'M0 0 C 14 -10, 40 -10, 40 0 C 40 10, 14 10, 0 0 Z';
+      const petals = [0, 90, 180, 270].map((a) => `<path d="${lobe}" transform="rotate(${a})"/>`).join('');
+      return `<div class="lcd-vector" style="${gridPos(b.area, narrow)}"><svg viewBox="-50 -50 100 100" aria-hidden="true">
+        <g transform="rotate(${b.degrees})">${petals}</g><path class="axis" d="M-44 -44 L44 44 M-44 44 L44 -44"/></svg></div>`;
+    }
     case 'contact':
       return `<div class="lcd-contact" style="${gridPos(b.area, narrow)}">
         <div class="ct-bar"><span style="height:${Math.round(b.level * 100)}%"></span></div>

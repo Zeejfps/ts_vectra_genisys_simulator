@@ -220,7 +220,7 @@ const IFC_TERMS = [
   'Carrier Frequency: The medium frequency of the two interfering currents.',
   'Beat Frequency: The difference between the two carrier frequencies. This is the frequency of the intensity modulation in the tissue.',
   'Sweep: The beat frequency changes between Beat Low and Beat High over a fixed 15 second sweep time.',
-  'Vector Scan: Rotates the area of maximum interference to cover a larger treatment area.',
+  'Vector Scan: Varies the intensity of each channel in turn so the stimulation seems to cover a larger area. Automatic 40% drops each channel by up to 40% of the setting; Manual concentrates the current towards one channel by the Vector Position.',
 ];
 
 const PULSED_TERMS = [
@@ -243,8 +243,19 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
         kind: 'choice',
         key: 'vectorScan',
         label: 'Vector Scan',
-        options: ['Off', 'Manual', '40%', '100%'],
+        options: ['Off', 'Manual', 'Automatic 40%', 'Automatic 100%'],
         default: 'Off',
+      },
+      {
+        kind: 'number',
+        key: 'vectorPosition',
+        label: 'Vector Position',
+        unit: 'deg.',
+        min: 0,
+        max: 90,
+        step: 1,
+        default: 45,
+        visible: (p) => p.vectorScan === 'Manual',
       },
       beatLow,
       beatFreq,
@@ -259,10 +270,11 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
       modeParam('CV'),
       timeParam(20),
     ],
-    reviewOrder: ['mode', 'carrier', REVIEW_BEAT, 'vectorScan', 'time'],
+    reviewOrder: ['mode', 'carrier', REVIEW_BEAT, 'vectorScan', 'vectorPosition', 'time'],
+    // Manual vector scan adds Vector Position under it ("IFC Interferential" video, 1:13).
     editLayout: [
       'sweep', 'vectorScan',
-      null, null,
+      null, 'vectorPosition',
       ['beatLow', 'beatFreq'], 'carrier',
       'beatHigh', 'mode',
       INTENSITY_SLOT, 'time',

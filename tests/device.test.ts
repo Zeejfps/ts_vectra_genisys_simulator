@@ -426,8 +426,43 @@ describe('behaviour confirmed by the service manual and training videos', () => 
     d.pressSoftKey(R(1)); // Shoulder
     d.pressSoftKey(L(1)); // Acute Pain
     expect(d.route.kind).toBe('electrodeCount');
-    d.pressSoftKey(L(4)); // 2 Electrodes
-    expect(d.screen().title).toBe('Treatment Review Ch 1');
+    expect(d.screen().title).toBe('Shoulder Acute Pain');
+    expect([labels(d)[R(1)], labels(d)[R(2)]]).toEqual(['4\nElectrodes', '2\nElectrodes']);
+    d.pressSoftKey(R(2)); // 2 Electrodes
+    expect(d.screen().title).toBe('Shoulder Acute Pain 2 Electrodes: Ch 1');
+    expect(labels(d)[L(1)]).toBe('Waveform\nRationale');
+    expect(reviewLines(d)[0]).toBe('Waveform:\tPremod');
+    expect(reviewLines(d).some((l) => l.includes('Protocol'))).toBe(false);
     expect(d.activeTreatment?.waveform).toBe('premod');
+  });
+
+  it('Cervical offers a shorter protocol list', () => {
+    const d = poweredDevice();
+    d.pressLibrary();
+    d.pressSoftKey(L(1)); // Clinical Protocols
+    d.pressSoftKey(L(1)); // Cervical
+    expect(labels(d).map((l) => l.replace(/\n/g, ' '))).toEqual([
+      'Acute Pain', 'Chronic Pain',
+      'Increase Local Circulation', 'Relax Muscle Spasm',
+      '', '',
+      'Chronic Pain', 'Sub-chronic Pain',
+      'Scar Tissue / Adhesions', '',
+    ]);
+  });
+
+  it('IFC manual vector scan adds Vector Position and weights the channels', () => {
+    const d = poweredDevice();
+    d.pressSoftKey(L(1));
+    d.pressSoftKey(L(1)); // Interferential
+    d.pressSoftKey(R(5)); // Edit
+    d.pressSoftKey(R(1)); // Vector Scan -> Manual
+    expect(labels(d)[R(2)]).toBe('Vector Position\n45 deg.');
+    d.pressSoftKey(R(1)); // -> Automatic 40%
+    expect(labels(d)[R(1)]).toBe('Vector Scan\nAutomatic 40%');
+    expect(labels(d)[R(2)]).toBe('');
+    d.turnKnob(20); // 10.0 V
+    d.pressStart();
+    d.tick(3000); // half the scan period: channel 1 at its dip, channel 2 at full
+    expect(d.screen().status?.intensities).toEqual(['6.0', '10.0']);
   });
 });

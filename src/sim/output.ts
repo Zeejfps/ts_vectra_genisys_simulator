@@ -59,6 +59,24 @@ export function instantaneousFrequency(t: Treatment, tSec: number): number {
   }
 }
 
+/**
+ * IFC vector scan as the unit displays it: Automatic N% dips each channel by up to
+ * N% of the setting, the two channels out of step; Manual weights the channels by
+ * Vector Position (45 deg. is even, 0 or 90 favours one channel).
+ */
+function vectorScanLevel(t: Treatment, index: number, tSec: number): number {
+  const scan = String(t.params.vectorScan ?? 'Off');
+  if (scan.startsWith('Automatic')) {
+    const depth = parseFloat(scan.replace('Automatic', '')) / 100;
+    return 1 - depth * tri(tSec + (index === 1 ? MOD_PERIOD_S / 2 : 0), MOD_PERIOD_S);
+  }
+  if (scan === 'Manual') {
+    const pos = Number(t.params.vectorPosition);
+    return Math.min(1, (index === 0 ? 90 - pos : pos) / 45);
+  }
+  return 1;
+}
+
 function antiFatigue(t: Treatment, f: number, tSec: number): number {
   if (t.params.antiFatigue !== 'On') return f;
   return f * (0.9 + 0.2 * tri(tSec, MOD_PERIOD_S));
@@ -130,6 +148,8 @@ export function channelOutput(t: Treatment, index: number, tSec: number): Channe
     level = tSec / ramp;
     phase = 'ramp';
   }
+
+  level *= vectorScanLevel(t, index, tSec);
 
   if (p.ampMod !== undefined && p.ampMod !== 'Off') {
     const depth = parseFloat(String(p.ampMod)) / 100;

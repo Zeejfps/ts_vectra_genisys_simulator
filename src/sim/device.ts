@@ -39,7 +39,7 @@ export type Route =
   | { kind: 'library' }
   | { kind: 'protocolBody' }
   | { kind: 'protocolList'; area: string }
-  | { kind: 'electrodeCount'; indication: Indication; source: string };
+  | { kind: 'electrodeCount'; indication: Indication; title: string };
 
 export type PowerState = 'off' | 'booting' | 'on';
 
@@ -392,6 +392,14 @@ export class Device {
   loadIndication(ind: Indication, source = `Indication: ${ind.label}`): void {
     const t = this.createTreatment(ind.waveform, ind.params, source);
     if (t) this.openReview(t);
+  }
+
+  /** Load a Clinical Protocol preset; `title` names it on the review screen. */
+  loadProtocol(ind: Indication, title: string): void {
+    const t = this.createTreatment(ind.waveform, ind.params);
+    if (!t) return;
+    t.protocol = title;
+    this.openReview(t);
   }
 
   indications(): readonly Indication[] {
