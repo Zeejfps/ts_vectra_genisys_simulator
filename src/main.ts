@@ -12,6 +12,7 @@ import { DeviceView3D } from './ui/deviceView3d';
 import { Scope } from './ui/scope';
 import type { UnitView } from './ui/unitView';
 import { MAX_ZOOM, StageZoom, ZOOM_STEP } from './ui/zoom';
+import { ZOOM_SLIDER, ZoomSlider } from './ui/zoomSlider';
 
 const SPEEDS = [1, 10, 60] as const;
 
@@ -34,6 +35,7 @@ const UNIT_CONTROLS = `
       <button class="zoom-out" aria-label="Zoom out" title="Zoom out (−)" data-action="zoom-out" disabled>${ZOOM_OUT_ICON}</button>
       <button class="zoom-level" aria-label="Reset zoom" title="Reset zoom. Pinch or drag to zoom and pan" data-action="zoom-reset" disabled>100%</button>
       <button class="zoom-in" aria-label="Zoom in" title="Zoom in (+)" data-action="zoom-in">${ZOOM_IN_ICON}</button>
+      ${ZOOM_SLIDER}
     </div>
     <button class="tool interrupt" aria-label="Patient Interrupt Switch" title="Patient Interrupt Switch (I)" data-action="interrupt">
       ${INTERRUPT_ICON}
@@ -123,7 +125,9 @@ const zoom = new StageZoom(stage, view, (level) => {
   zoomLevel.textContent = `${Math.round(level * 100)}%`;
   zoomLevel.disabled = zoomOutBtn.disabled = level === 1;
   zoomInBtn.disabled = level >= MAX_ZOOM;
+  zoomSlider.update(level);
 });
+const zoomSlider = new ZoomSlider(stage.querySelector('.zoom')!, zoom);
 zoomInBtn.addEventListener('click', () => zoom.zoomBy(ZOOM_STEP));
 zoomOutBtn.addEventListener('click', () => zoom.zoomBy(1 / ZOOM_STEP));
 zoomLevel.addEventListener('click', () => zoom.reset());
