@@ -1,8 +1,9 @@
 import type { Treatment } from './types';
 import { getWaveform, parseCycle, parseSeconds } from './waveforms';
 
-// Behavioural model of what each channel is outputting. It is used for the scope
-// panel only; it is an illustration of the waveform family, not an electrical model.
+// Behavioural model of what each channel is outputting. It drives the scope panel
+// and the live intensity readout; it is an illustration of the waveform family,
+// not an electrical model.
 
 const TAU = Math.PI * 2;
 /** IFC / Premod sweep time is fixed at 15 seconds. */

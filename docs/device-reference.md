@@ -73,6 +73,7 @@ These sources were checked in the second research pass:
 
 **Treatment behaviour**
 - Intensity is set with the knob *before* Start (SM, all videos).
+- While running, the intensity readout shows the delivered output, not the setpoint: it climbs through the ramp and falls to 0 during the off time of the cycle (observed on a real unit by a clinician).
 - Treatments run per channel, e.g. `Ch 1: Running` alongside `Ch 2: Completed`.
 - **Pause drops the intensity to 0.0.** Resume with Start ("Reset intensity and press the Start button", UM08 p.63).
 

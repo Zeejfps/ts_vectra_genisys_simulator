@@ -1,5 +1,6 @@
 import type { Device, Route } from './device';
 import { INDICATIONS, type Indication } from './indications';
+import { channelOutput } from './output';
 import {
   emptySlots,
   slotIndex,
@@ -518,9 +519,12 @@ function electrodeCountScreen(d: Device, m: ScreenModel, r: Extract<Route, { kin
 
 // ---------- Status panel ----------
 
+/** Displayed intensity. While running, the unit shows what the channel is
+ *  delivering, so it follows the ramp and drops to zero during the off time. */
 export function intensityText(t: Treatment, i: number): string {
   const wf = getWaveform(t.waveform);
-  const v = t.intensity[i] ?? 0;
+  const set = t.intensity[i] ?? 0;
+  const v = t.status === 'running' ? set * channelOutput(t, i, t.elapsedMs / 1000).level : set;
   if (t.waveform === 'hvpc' && t.params.display === 'Peak Current') {
     // Estimated peak current (A) into a 500 ohm load.
     return (v / 500).toFixed(2);

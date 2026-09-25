@@ -330,6 +330,24 @@ describe('behaviour confirmed by the service manual and training videos', () => 
     expect(d.screen().status?.timer).toBe(':20');
   });
 
+  it('running intensity readout follows the ramp and off time', () => {
+    const d = poweredDevice();
+    d.pressSoftKey(L(1));
+    d.pressSoftKey(R(3)); // Russian: 2 sec ramp, 10/50 cycle
+    d.turnKnob(20);
+    const shown = () => d.screen().status?.rows[0].intensity;
+    expect(shown()).toBe('10.0');
+    d.pressStart();
+    expect(shown()).toBe('0.0');
+    d.tick(1000);
+    expect(shown()).toBe('5.0');
+    d.tick(4000);
+    expect(shown()).toBe('10.0');
+    d.tick(7000);
+    expect(shown()).toBe('0.0');
+    expect(d.activeTreatment?.intensity).toEqual([10]);
+  });
+
   it('co-contract sets both channels together', () => {
     const d = poweredDevice();
     d.pressSoftKey(L(1));
