@@ -33,6 +33,8 @@ export interface Treatment {
   /** Unit clock time (ms) when Start was first pressed / when the treatment ended. */
   startedAt?: number;
   endedAt?: number;
+  /** Intensity per channel when the treatment ended, for the Completed review. */
+  endIntensity?: number[];
   /** Set when a treatment was loaded from an Indication, shown in the review screen. */
   source?: string;
 }

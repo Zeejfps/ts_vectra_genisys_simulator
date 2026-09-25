@@ -32,6 +32,9 @@ export type ParamDef = NumberParam | ChoiceParam;
 
 export type IntensityUnit = 'mA' | 'V' | 'µA';
 
+/** Review-list entry combining the beat frequency settings, e.g. "Frequency: 80/150 Hz". */
+export const REVIEW_BEAT = '#beat';
+
 /** Placeholder used in edit-screen layouts for the live intensity readout. */
 export const INTENSITY_SLOT = '#intensity';
 export type LayoutEntry = string | readonly string[] | null;
@@ -45,6 +48,8 @@ export interface WaveformDef {
   /** Name shown in the Treatment Review list ("Waveform: ..."). */
   reviewName: string;
   params: readonly ParamDef[];
+  /** Treatment Review list order, as parameter keys (or REVIEW_BEAT). Defaults to `params` order. */
+  reviewOrder?: readonly string[];
   /** Ten soft-key slots, row-major: index 0 = left row 1, 1 = right row 1, ... 9 = right row 5. */
   editLayout: readonly LayoutEntry[];
   channelsNeeded: (p: Params) => 1 | 2;
@@ -161,18 +166,18 @@ const setIntensityParam: ChoiceParam = {
   kind: 'choice',
   key: 'setIntensity',
   label: 'Set Intensity',
-  options: ['First Channel', 'Second Channel', 'Both Channels'],
+  options: ['1st Channel', '2nd Channel', 'Both Channels'],
   optionsFor: (p) =>
     p.channelMode === 'Co-Contract'
-      ? ['Both Channels', 'First Channel', 'Second Channel']
-      : ['First Channel', 'Second Channel'],
-  default: 'First Channel',
+      ? ['Both Channels', '1st Channel', '2nd Channel']
+      : ['1st Channel', '2nd Channel'],
+  default: '1st Channel',
   visible: (p) => p.channelMode !== 'Single',
 };
 
 /** Set Intensity value a channel mode starts with. */
 export function defaultSetIntensity(channelMode: string): string {
-  return channelMode === 'Co-Contract' ? 'Both Channels' : 'First Channel';
+  return channelMode === 'Co-Contract' ? 'Both Channels' : '1st Channel';
 }
 
 // Anti-Fatigue only appears on the edit screen when stimulation is cycled.
@@ -182,7 +187,7 @@ const phaseParam = (max: number, def: number): NumberParam => ({
   kind: 'number',
   key: 'phase',
   label: 'Phase Duration',
-  unit: 'µsec',
+  unit: 'usec',
   min: 20,
   max,
   step: 10,
@@ -192,12 +197,12 @@ const phaseParam = (max: number, def: number): NumberParam => ({
 const tensParams = (phaseDefault: number): ParamDef[] => [
   phaseParam(1000, phaseDefault),
   { kind: 'number', key: 'freq', label: 'Frequency', unit: 'Hz', min: 1, max: 250, step: 1, default: 80 },
-  { kind: 'number', key: 'burst', label: 'Burst Freq.', unit: 'bps', min: 0, max: 10, step: 1, default: 0 },
-  { kind: 'number', key: 'freqMod', label: 'Freq. Mod.', unit: 'Hz', min: 0, max: 250, step: 1, default: 0 },
+  { kind: 'number', key: 'burst', label: 'Burst Freq', unit: 'bps', min: 0, max: 10, step: 1, default: 0 },
+  { kind: 'number', key: 'freqMod', label: 'Freq Modulation', unit: 'Hz', min: 0, max: 250, step: 1, default: 0 },
   {
     kind: 'choice',
     key: 'ampMod',
-    label: 'Amp. Mod.',
+    label: 'Amplitude Modulation',
     options: ['Off', '40%', '60%', '80%', '100%'],
     default: 'Off',
   },
@@ -254,6 +259,7 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
       modeParam('CV'),
       timeParam(20),
     ],
+    reviewOrder: ['mode', 'carrier', REVIEW_BEAT, 'vectorScan', 'time'],
     editLayout: [
       'sweep', 'vectorScan',
       null, null,
@@ -286,8 +292,9 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
   premod: {
     id: 'premod',
     name: 'Premodulated',
-    reviewName: 'IFC Premod (2p)',
+    reviewName: 'Premod',
     params: [sweepParam, beatLow, beatFreq, beatHigh, modeParam('CV'), cycleParam(CYCLE_MUSCLE, 'Continuous'), timeParam(20)],
+    reviewOrder: ['mode', 'cycle', REVIEW_BEAT, 'time'],
     editLayout: [
       'sweep', null,
       null, null,
@@ -319,11 +326,12 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
     name: 'Asymmetrical Biphasic',
     reviewName: 'Asym. Biphasic',
     params: tensParams(250),
+    // Real unit (TENS demo videos): rates on the left, burst and modulation on the right.
     editLayout: [
-      'phase', 'freq',
-      'burst', 'freqMod',
-      'ampMod', 'cycle',
-      'mode', null,
+      'phase', 'burst',
+      'freq', 'freqMod',
+      'mode', 'ampMod',
+      null, 'cycle',
       INTENSITY_SLOT, 'time',
     ],
     channelsNeeded: () => 1,
@@ -339,9 +347,9 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
     ],
     terms: [
       ...PULSED_TERMS,
-      'Burst Freq.: Number of pulse bursts per second (0 = off).',
-      'Freq. Mod.: Range over which the frequency is varied.',
-      'Amp. Mod.: Amount the intensity is varied during stimulation.',
+      'Burst Freq: Number of pulse bursts per second (0 = off).',
+      'Freq Modulation: Range over which the frequency is varied.',
+      'Amplitude Modulation: Amount the intensity is varied during stimulation.',
     ],
     placement: {
       figure: 'lowBack2',
@@ -354,11 +362,12 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
     name: 'Symmetrical Biphasic',
     reviewName: 'Sym. Biphasic',
     params: tensParams(300),
+    // Real unit (TENS demo videos): rates on the left, burst and modulation on the right.
     editLayout: [
-      'phase', 'freq',
-      'burst', 'freqMod',
-      'ampMod', 'cycle',
-      'mode', null,
+      'phase', 'burst',
+      'freq', 'freqMod',
+      'mode', 'ampMod',
+      null, 'cycle',
       INTENSITY_SLOT, 'time',
     ],
     channelsNeeded: () => 1,
@@ -374,9 +383,9 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
     ],
     terms: [
       ...PULSED_TERMS,
-      'Burst Freq.: Number of pulse bursts per second (0 = off).',
-      'Freq. Mod.: Range over which the frequency is varied.',
-      'Amp. Mod.: Amount the intensity is varied during stimulation.',
+      'Burst Freq: Number of pulse bursts per second (0 = off).',
+      'Freq Modulation: Range over which the frequency is varied.',
+      'Amplitude Modulation: Amount the intensity is varied during stimulation.',
     ],
     placement: {
       figure: 'quad2',
@@ -393,17 +402,18 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
       setIntensityParam,
       phaseParam(400, 200),
       { kind: 'number', key: 'freq', label: 'Frequency', unit: 'pps', min: 1, max: 200, step: 1, default: 50 },
-      modeParam('CV'),
+      modeParam('CC'),
       rampParam('2 sec'),
       { ...onOff('antiFatigue', 'Anti-Fatigue'), visible: notContinuous },
       cycleParam(CYCLE_MUSCLE, '10/50'),
-      timeParam(10),
+      timeParam(20),
     ],
+    reviewOrder: ['channelMode', 'mode', 'cycle', 'freq', 'ramp', 'phase', 'antiFatigue', 'time'],
     editLayout: [
       'channelMode', 'setIntensity',
-      'phase', 'freq',
-      'mode', 'ramp',
-      'antiFatigue', 'cycle',
+      'phase', 'cycle',
+      'mode', 'freq',
+      'antiFatigue', 'ramp',
       INTENSITY_SLOT, 'time',
     ],
     channelsNeeded: dualIfNotSingle,
@@ -437,17 +447,18 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
       setIntensityParam,
       phaseParam(400, 200),
       { kind: 'number', key: 'freq', label: 'Frequency', unit: 'pps', min: 1, max: 200, step: 1, default: 50 },
-      modeParam('CV'),
+      modeParam('CC'),
       rampParam('2 sec'),
       { ...onOff('antiFatigue', 'Anti-Fatigue'), visible: notContinuous },
       cycleParam(CYCLE_MUSCLE, '10/50'),
-      timeParam(10),
+      timeParam(20),
     ],
+    reviewOrder: ['channelMode', 'mode', 'cycle', 'freq', 'ramp', 'phase', 'antiFatigue', 'time'],
     editLayout: [
       'channelMode', 'setIntensity',
-      'phase', 'freq',
-      'mode', 'ramp',
-      'antiFatigue', 'cycle',
+      'phase', 'cycle',
+      'mode', 'freq',
+      'antiFatigue', 'ramp',
       INTENSITY_SLOT, 'time',
     ],
     channelsNeeded: dualIfNotSingle,
@@ -483,16 +494,17 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
         kind: 'choice',
         key: 'dutyCycle',
         label: 'Duty Cycle',
-        options: ['10%', '20%', '30%', '40%', '50%'],
-        default: '50%',
+        options: ['10 %', '20 %', '30 %', '40 %', '50 %'],
+        default: '50 %',
       },
-      { kind: 'number', key: 'burst', label: 'Burst Freq.', unit: 'bps', min: 20, max: 100, step: 1, default: 50 },
+      { kind: 'number', key: 'burst', label: 'Burst Freq', unit: 'bps', min: 20, max: 100, step: 1, default: 50 },
       modeParam('CC'),
       rampParam('2 sec'),
       { ...onOff('antiFatigue', 'Anti-Fatigue'), visible: notContinuous },
       cycleParam(CYCLE_MUSCLE, '10/50'),
       timeParam(20),
     ],
+    reviewOrder: ['channelMode', 'mode', 'cycle', 'burst', 'dutyCycle', 'ramp', 'antiFatigue', 'time'],
     // Service manual Fig 5.9A: CC/CV left row 3, Burst Freq right row 3, Ramp right row 4.
     editLayout: [
       'channelMode', 'setIntensity',
@@ -516,7 +528,7 @@ const WAVEFORMS: Record<WaveformId, WaveformDef> = {
     terms: [
       'TERMS:',
       'Duty Cycle: Percentage of each burst period during which the carrier is on.',
-      'Burst Freq.: Number of bursts delivered per second.',
+      'Burst Freq: Number of bursts delivered per second.',
       'Cycle Time: Stimulation on time / off time in seconds.',
       'Ramp: Time to reach the set intensity at the start of each on time.',
       'Channel Mode: Single, Reciprocal or Co-Contract.',

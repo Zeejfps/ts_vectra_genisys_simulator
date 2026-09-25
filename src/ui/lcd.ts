@@ -1,6 +1,6 @@
 import type { Area, Block, ScreenModel, Slot, StatusPanel } from '../sim/screenModel';
 import { bodySvg, placementSvg } from './figures';
-import { iconSvg, statusIconSvg } from './icons';
+import { PAD_GLYPH, iconSvg, statusIconSvg } from './icons';
 
 // Renders a ScreenModel into the LCD element. The LCD is a fixed-size box; its
 // five button rows line up with the physical soft keys drawn by deviceView.
@@ -66,8 +66,16 @@ function renderSlot(s: Slot | null, i: number, narrow: boolean, pressed: boolean
 
 function renderBlock(b: Block, narrow: boolean): string {
   switch (b.type) {
-    case 'text':
-      return `<div class="lcd-text ${b.tone}" style="${gridPos(b.area, narrow)}">${b.lines.map((l) => `<div>${esc(l) || '&nbsp;'}</div>`).join('')}</div>`;
+    case 'text': {
+      // Tab-separated lines are label/value pairs laid out in two aligned columns.
+      const columns = b.lines.some((l) => l.includes('\t'));
+      const line = (l: string) => {
+        if (!columns) return `<div>${esc(l) || '&nbsp;'}</div>`;
+        const [label, value] = l.split('\t');
+        return value === undefined ? `<div class="span">${esc(l) || '&nbsp;'}</div>` : `<div>${esc(label)}</div><div>${esc(value)}</div>`;
+      };
+      return `<div class="lcd-text ${b.tone}${columns ? ' columns' : ''}" style="${gridPos(b.area, narrow)}">${b.lines.map(line).join('')}</div>`;
+    }
     case 'intensity':
       return `<div class="lcd-intensity" style="${gridPos(b.area, narrow)}">
         <div class="vals">${b.values.map((v) => `<span>${esc(v)}</span>`).join('')}</div>
@@ -102,20 +110,22 @@ function renderBlock(b: Block, narrow: boolean): string {
 }
 
 function renderStatus(s: StatusPanel): string {
+  // Pad contact quality sits at the end of the last (US) row: an electrode glyph
+  // and one thin bar per channel, stacked.
+  const pad = s.padContact.length
+    ? `<span class="st-pad">${PAD_GLYPH}<span class="pad-bars">${s.padContact.map((v) => `<span class="pad-bar"><span style="width:${Math.round(v * 100)}%"></span></span>`).join('')}</span></span>`
+    : '';
   const rows = s.rows
     .map(
-      (r) =>
-        `<div class="st-row ${r.framed ? 'framed' : ''}"><span class="ch">${esc(r.label)}</span><span class="st">${esc(r.status)}</span><span class="iv">${esc(r.intensity)}${r.icon ? statusIconSvg(r.icon) : ''}</span></div>`,
+      (r, i) =>
+        `<div class="st-row ${r.framed ? 'framed' : ''}"><span class="ch">${esc(r.label)}</span><span class="st">${esc(r.status)}</span><span class="iv">${esc(r.intensity)}${r.icon ? statusIconSvg(r.icon) : ''}${i === s.rows.length - 1 ? pad : ''}</span></div>`,
     )
     .join('');
-  const pad = s.padContact.length
-    ? `<div class="st-pad">${s.padContact.map((v, i) => `<span class="pad-label">${s.padContact.length > 1 ? `Ch${i + 1}` : 'Pad'}</span><span class="pad-bar"><span style="width:${Math.round(v * 100)}%"></span></span>`).join('')}</div>`
-    : '';
   const right = s.timer
     ? `<div class="st-right">
         <div class="st-timer">${esc(s.timer)}</div>
         <div class="st-ints">${s.intensities.map((v) => `<span>${esc(v)}</span>`).join('')}</div>
         <div class="st-unit">${esc(s.unit)}</div></div>`
     : '';
-  return `<div class="lcd-status"><div class="st-left"><div class="st-list">${rows}</div>${pad}</div>${right}</div>`;
+  return `<div class="lcd-status"><div class="st-left"><div class="st-list">${rows}</div></div>${right}</div>`;
 }

@@ -19,6 +19,6 @@ export const INDICATIONS: readonly Indication[] = [
   { label: 'Muscle Re-education', button: 'Muscle\nRe-education', waveform: 'vms', params: { freq: 35, cycle: '10/10', ramp: '2 sec', time: 15 } },
   { label: 'Relax Muscle Spasm', button: 'Relax Muscle\nSpasm', waveform: 'premod', params: { sweep: 'On', beatLow: 80, beatHigh: 150, mode: 'CC', time: 15 } },
   { label: 'Stroke Muscle Re-ed', button: 'Stroke\nMuscle Re-ed', waveform: 'vms', params: { channelMode: 'Reciprocal', freq: 35, cycle: '10/10', ramp: '2 sec', time: 15 } },
-  { label: 'Prevent/Retard Disuse Atrophy', button: 'Prevent/Retard\nDisuse Atrophy', waveform: 'russian', params: { burst: 50, dutyCycle: '50%', cycle: '10/50', ramp: '2 sec', time: 10 } },
+  { label: 'Prevent/Retard Disuse Atrophy', button: 'Prevent/Retard\nDisuse Atrophy', waveform: 'russian', params: { burst: 50, dutyCycle: '50 %', cycle: '10/50', ramp: '2 sec', time: 10 } },
   { label: 'Range of Motion', button: 'Range of\nMotion', waveform: 'vms', params: { channelMode: 'Reciprocal', freq: 35, cycle: '10/10', ramp: '2 sec', time: 15 } },
 ];

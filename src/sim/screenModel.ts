@@ -9,6 +9,8 @@ export type IconName =
   | 'sym'
   | 'microcurrent'
   | 'vms'
+  | 'vmsBurst'
+  | 'vmsFr'
   | 'russian'
   | 'hvpc'
   | 'dc'

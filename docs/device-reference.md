@@ -13,7 +13,7 @@ Notes taken from the *Vectra Genisys Therapy System User Manual* (Enovis/DJO IFU
 ## Screens
 
 - **Home** (p. 42): Electrotherapy | Indications / Ultrasound | Combination / sEMG | sEMG + Stim / View/Edit Channel | Patient Card / Select Channel | (unused).
-- **Electrotherapy** (p. 43): Interferential | Premod / Asymmetrical Biphasic | Microcurrent / VMS / VMS Burst | Russian / High Volt | Symmetrical Biphasic / DC | Indications.
+- **Electrotherapy** (p. 43): Interferential | Premod / Asymmetrical Biphasic | Microcurrent / VMS / VMS Burst (opens Select VMS Type) | Russian / High Volt | Symmetrical Biphasic / DC | Indications.
 - **Treatment Review Ch N** (p. 44–45, 55): Waveform Description | Electrode Placement. A green parameter list below, then the intensity readout and Edit.
 - **Edit** (p. 45): parameter buttons. The IFC layout is Sweep | Vector Scan / – | – / Beat Low | Carrier Freq. / Beat High | CC/CV / intensity | Treatment Time.
 - Status area: `Ch 1: Setup` with per-channel intensity on the left; large mm:ss timer, channel intensities and unit ("Volts CV", "mA CC") on the right. The framed row is the selected channel. With Pad Contact Quality on, bar graphs appear for IFC (dual), Premod and Russian (single).
@@ -52,7 +52,8 @@ These sources were checked in the second research pass:
 - **IFC:** Sweep On, 80/150 Hz, 4000 Hz, Vector Scan Off, CV, 20 min (UM08, videos).
 - **Premod:** Sweep On, 80/150, CV, Cycle Time Continuous, 20 min (video).
 - **Russian:** 50 bps, Ramp 2 s, CC, 10/50, **20 min** (SM Fig 5.9A, video).
-- **VMS:** Single, **200 µs**, 50 pps, **10/50**, Ramp 2 s (video). CV is inferred from the video.
+- **VMS:** Single, **200 usec**, 50 pps, **10/50**, Ramp 2 s, **CC**, **20 min** ("VMS for Muscle Strengthening of the Post TKA Patient" video, 1:34–1:39).
+- **Sym Biphasic:** 300 usec, 80 Hz, Burst 0 bps, Freq Modulation 0 Hz, Amplitude Modulation Off, Continuous, CC, 20 min (TENS video, 1:06).
 - **High Volt:** **Negative** polarity (probably), Ramp 2 s, Sweep Continuous, 100 pps, Cycle Continuous, Display Volts, 20 min (SM Fig 5.14).
 - **Microcurrent:** polarity is not Alternating by default. Probe mode is Negative, 10 Hz, 20 sec (SM Fig 5.17).
 
@@ -68,7 +69,10 @@ These sources were checked in the second research pass:
   | 5 | intensity readout | Treatment Time |
 
 - **Microcurrent:** a Contact Quality graph on the left. On the right: Method (Pads/Probe), Polarity, Frequency, then Treatment Time at row 5. The intensity readout ("0 uA") is at left row 5.
-- **Russian:** CC/CV at left row 3, Burst Freq. at right row 3, Ramp at right row 4, Set Intensity at right row 1.
+- **Russian:** CC/CV at left row 3, Burst Freq at right row 3, Ramp at right row 4, Set Intensity at right row 1. Set Intensity reads "1st Channel" / "2nd Channel"; Duty Cycle reads "50 %" ("Vectra Genisys Part 2" video, 4:26).
+- **VMS / VMS Burst:** left Channel Mode, Phase Duration, CC/CV, Anti-Fatigue; right Set Intensity (hidden in Single), Cycle Time, Frequency, Ramp; Treatment Time at right row 5 (TKA video, 1:39).
+- **Asym / Sym Biphasic:** left Phase Duration, Frequency, CC/CV, *(empty)*; right Burst Freq, Freq Modulation, Amplitude Modulation, Cycle Time; Treatment Time at right row 5 (TENS videos).
+- Phase durations are written "usec", not "µsec", on buttons, the Review list and the number editor.
 - **Set Intensity** reads "Both Channels" in Co-Contract (SM). Reciprocal sets the first channel, then the second (video).
 
 **Treatment behaviour**
@@ -80,11 +84,13 @@ These sources were checked in the second research pass:
 
 **End of treatment**
 - A sound plays, and the (green) Completed Treatment Review appears.
-- Row 1 has "Save to Patient Card" on the left and "Start New Treatment" on the right. The green list includes Start/End Time (LM p.36, videos).
+- Row 1 has "Save to Patient Card" on the left and "Start New Treatment" on the right (LM p.36, videos).
+- The green list drops CC/CV and adds, before Treatment Time, `Start/End Time: 11:48:25 AM / 11:48:33 AM` and `Amplitude: 0.4 / 0.4 V CV` (the intensity at the end). It runs down to row 5. The status area then shows only `Ch 1: Completed`, with no timer or intensities ("Vectra Genisys Part 2" video, 1:56; "Part1", 7:11).
 - A microcurrent probe Stop returns to Home.
 
 **Status area and messages**
-- The status area has a `US:` row (`No Appl.` with no applicator).
+- The status area has a `US:` row (`No Appl.` with no applicator). Pad contact quality is drawn at the end of that row: an electrode-lead glyph and a thin bar per channel ("Vectra Genisys Part 2" video, 1:32).
+- **Treatment Review list:** label and value in two aligned columns, units spelled out ("20 minutes", "2 seconds"), in a fixed order per waveform. IFC: Waveform, CC/CV, Carrier Freq, Frequency (`80/150 Hz`, sweep combined), Vector Scan, Treatment Time. Premod: Waveform, CC/CV, Cycle Time, Frequency, Treatment Time. VMS: Waveform, Channel Mode, CC/CV, Cycle Time, Frequency, Ramp, Phase Duration, Anti-Fatigue, Treatment Time. Russian: Waveform, Channel Mode, CC/CV, Cycle Time, Burst Freq, Duty Cycle, Ramp, Anti-Fatigue, Treatment Time (videos).
 - Under a minute the timer shows as `:20`.
 - High Volt "Peak Current" display shows `0.00` with the unit `Amps`.
 - Ultrasound without an applicator: "Ultrasound applicator is not plugged into unit. Press any button to continue..."
@@ -99,7 +105,8 @@ These sources were checked in the second research pass:
 These points are still unconfirmed or guessed:
 - Defaults for Asym/Sym Biphasic and DC.
 - Indication presets and Clinical Protocol parameters. No source gives these values.
-- **VMS / VMS Burst:** the simulator opens a two-button chooser. Sources are ambiguous.
+- **VMS FR** appears on the "Select VMS Type" screen (VMS, VMS Burst, VMS FR stacked on the left; TKA video, 1:31) but is not simulated; its icon is approximate.
+- Review-list order for Asym/Sym Biphasic, High Volt, Microcurrent and DC is not seen in footage and follows the parameter order.
 - Start/Pause/Stop act on the selected (framed) channel only. No source says whether they act on all channels.
 - Anti-Fatigue appears only when Cycle Time is not Continuous. This is inferred from the High Volt and Russian photos.
 - Knob resolution is 0.5 mA/V per detent (confirmed for IFC), 1 V for HVPC, 5 µA for microcurrent, and 0.1 mA for DC.

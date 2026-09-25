@@ -486,6 +486,17 @@ body {
   overflow: hidden;
 }
 
+.lcd-text.columns {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 1.5em;
+  align-content: start;
+}
+
+.lcd-text.columns .span {
+  grid-column: 1 / -1;
+}
+
 .lcd-text.green {
   background: #b2f2a3;
 }
@@ -706,16 +717,25 @@ body {
 }
 
 .st-pad {
-  display: grid;
-  grid-template-columns: auto 1fr;
+  display: flex;
   align-items: center;
-  gap: 2px 4px;
-  padding: 0 3px;
-  font-size: 9px;
+  gap: 2px;
+}
+
+.st-pad .pad-glyph {
+  width: 13px;
+  height: 10px;
+}
+
+.pad-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 36px;
 }
 
 .pad-bar {
-  height: 7px;
+  height: 4px;
   border: 1px solid #000;
   background: #fff;
 }

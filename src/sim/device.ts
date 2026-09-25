@@ -338,7 +338,7 @@ export class Device {
     // Keep a paired treatment's Set Intensity in step with the framed channel.
     const t = this.activeTreatment;
     if (t && t.channels.length > 1 && t.params.setIntensity !== undefined && t.params.setIntensity !== 'Both Channels') {
-      t.params.setIntensity = t.channels.indexOf(this.selectedChannel) === 1 ? 'Second Channel' : 'First Channel';
+      t.params.setIntensity = t.channels.indexOf(this.selectedChannel) === 1 ? '2nd Channel' : '1st Channel';
     }
   }
 
@@ -451,7 +451,7 @@ export class Device {
       }
     }
     if (key === 'setIntensity' && t.channels.length > 1) {
-      this.selectedChannel = t.channels[value === 'Second Channel' ? 1 : 0];
+      this.selectedChannel = t.channels[value === '2nd Channel' ? 1 : 0];
     }
     if (key === 'mode') {
       // Switching CC/CV changes the output unit, so start again from zero.
@@ -551,6 +551,7 @@ export class Device {
 
   private complete(t: Treatment): void {
     t.status = 'completed';
+    t.endIntensity = [...t.intensity];
     t.intensity = t.intensity.map(() => 0);
     t.endedAt = this.clock().getTime();
   }

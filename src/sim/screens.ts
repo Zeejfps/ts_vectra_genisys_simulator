@@ -5,15 +5,15 @@ import {
   emptySlots,
   slotIndex,
   type Block,
-  type IconName,
   type ScreenModel,
   type Slot,
   type StatusPanel,
   type StatusRow,
 } from './screenModel';
-import { CHANNELS, type Treatment, type WaveformId } from './types';
+import { CHANNELS, type ParamValue, type Treatment, type WaveformId } from './types';
 import {
   INTENSITY_SLOT,
+  REVIEW_BEAT,
   findParam,
   formatNumber,
   formatParamValue,
@@ -21,6 +21,7 @@ import {
   isVisible,
   resolveBound,
   resolveLayoutEntry,
+  type ParamDef,
 } from './waveforms';
 
 export const SOFTWARE_VERSION = '2.0 (Simulator)';
@@ -28,6 +29,7 @@ const TEXT_LINE_WIDTH = 40;
 const TEXT_PAGE_LINES = 15;
 
 const FULL = { rows: [2, 4] as [number, number], cols: [1, 2] as [number, number] };
+const FULL_TO_BOTTOM = { rows: [2, 5] as [number, number], cols: [1, 2] as [number, number] };
 const ROWS_1_TO_4 = { rows: [1, 4] as [number, number], cols: [1, 2] as [number, number] };
 
 export function buildScreen(d: Device): ScreenModel {
@@ -145,9 +147,10 @@ function estimScreen(d: Device, m: ScreenModel): ScreenModel {
 }
 
 function vmsChoiceScreen(d: Device, m: ScreenModel): ScreenModel {
-  m.title = 'VMS / VMS Burst';
-  set(m, 'left', 1, slot('VMS', () => d.selectWaveform('vms'), { icon: 'vms', iconSide: 'right' }));
-  set(m, 'right', 1, slot('VMS Burst', () => d.selectWaveform('vmsBurst'), { icon: 'vms', iconSide: 'left' }));
+  m.title = 'Select VMS Type';
+  set(m, 'left', 1, slot('VMS', () => d.selectWaveform('vms'), { icon: 'sym', iconSide: 'right' }));
+  set(m, 'left', 2, slot('VMS Burst', () => d.selectWaveform('vmsBurst'), { icon: 'vmsBurst', iconSide: 'right' }));
+  set(m, 'left', 3, slot('VMS FR', notSimulated(d, 'VMS FR'), { icon: 'vmsFr', iconSide: 'right' }));
   return m;
 }
 
@@ -196,16 +199,26 @@ function reviewScreen(d: Device, m: ScreenModel, t: Treatment): ScreenModel {
     set(m, 'right', 1, slot('Electrode\nPlacement', () => d.push({ kind: 'placement', tid: t.id, page: 0 })));
   }
 
-  const lines = [`Waveform:  ${wf.reviewName}`];
+  // Label and value are tab-separated; the LCD lines them up in two columns.
+  const lines = [`Waveform:\t${wf.reviewName}`];
   if (t.source) lines.push(t.source);
-  for (const def of wf.params) {
-    if (!isVisible(def, t.params)) continue;
-    lines.push(`${def.label}:  ${formatParamValue(def, t.params[def.key])}`);
+  for (const key of wf.reviewOrder ?? wf.params.map((def) => def.key)) {
+    // The Completed review drops CC/CV; the unit is shown with the Amplitude instead.
+    if (completed && key === 'mode') continue;
+    if (key === 'time' && completed) {
+      const times = [t.startedAt, t.endedAt].map((ms) => (ms ? formatTimeOfDay(ms) : '--'));
+      lines.push(`Start/End Time:\t${times.join(' / ')}`, `Amplitude:\t${amplitudeText(t)}`);
+    }
+    if (key === REVIEW_BEAT) {
+      const p = t.params;
+      lines.push(`Frequency:\t${p.sweep === 'On' ? `${p.beatLow}/${p.beatHigh}` : p.beatFreq} Hz`);
+      continue;
+    }
+    const def = findParam(t.waveform, key);
+    if (!def || !isVisible(def, t.params)) continue;
+    lines.push(`${def.label.replace(/\.$/, '')}:\t${reviewValue(def, t.params[def.key])}`);
   }
-  if (completed) {
-    lines.push('', `Start Time: ${t.startedAt ? formatTime(t.startedAt) : '--'}   End Time: ${t.endedAt ? formatTime(t.endedAt) : '--'}`);
-  }
-  m.blocks.push({ type: 'text', area: FULL, tone: 'green', lines });
+  m.blocks.push({ type: 'text', area: completed ? FULL_TO_BOTTOM : FULL, tone: 'green', lines });
 
   if (!completed) {
     m.blocks.push(intensityBlock(t, 5, 1));
@@ -534,8 +547,20 @@ export function intensityText(t: Treatment, i: number): string {
   return formatNumber(v, wf.intensityStep < 1 ? 0.1 : 1);
 }
 
-function waveformIcon(w: WaveformId): IconName {
-  return w === 'vmsBurst' ? 'vms' : w;
+/** Review lists spell units out: "20 minutes", "2 seconds". */
+function reviewValue(def: ParamDef, value: ParamValue): string {
+  return formatParamValue(def, value)
+    .replace(/ min\.$/, ' minutes')
+    .replace(/ sec\.?$/, ' seconds');
+}
+
+/** Intensity each channel ended at, e.g. "0.4 / 0.4 V CV". */
+function amplitudeText(t: Treatment): string {
+  const wf = getWaveform(t.waveform);
+  const values = (t.endIntensity ?? t.intensity).map((v) => formatNumber(v, wf.intensityStep < 1 ? 0.1 : 1));
+  const unit = wf.intensityUnit(t.params).replace('µ', 'u');
+  const mode = t.params.mode !== undefined ? ` ${t.params.mode}` : '';
+  return `${values.join(' / ')} ${unit}${mode}`;
 }
 
 function statusPanel(d: Device): StatusPanel {
@@ -546,23 +571,25 @@ function statusPanel(d: Device): StatusPanel {
       label: `Ch ${ch}:`,
       status: d.channelStatus(ch),
       intensity: t && t.status !== 'completed' ? intensityText(t, t.channels.indexOf(ch)) : '',
-      icon: t && t.status !== 'completed' ? waveformIcon(t.waveform) : undefined,
+      icon: t && t.status !== 'completed' ? t.waveform : undefined,
       framed: ch === d.selectedChannel,
     };
   });
   rows.push({ label: 'US:', status: 'No Appl.', intensity: '', framed: false });
+  // Once a treatment completes the status area shows only "Ch N: Completed".
+  const live = active && active.status !== 'completed' ? active : undefined;
   let padContact: number[] = [];
-  if (active && d.settings.padContactQuality) {
-    const kind = getWaveform(active.waveform).padContact;
-    const delivering = active.status === 'running' && active.intensity.some((v) => v > 0);
+  if (live && d.settings.padContactQuality) {
+    const kind = getWaveform(live.waveform).padContact;
+    const delivering = live.status === 'running' && live.intensity.some((v) => v > 0);
     if (kind === 'single') padContact = [delivering ? 0.85 : 0];
     if (kind === 'dual') padContact = [delivering ? 0.85 : 0, delivering ? 0.8 : 0];
   }
   return {
     rows,
-    timer: active ? formatClock(active.remainingMs) : null,
-    intensities: active ? active.channels.map((_, i) => intensityText(active, i)) : [],
-    unit: active ? getWaveform(active.waveform).intensityLabel(active.params) : '',
+    timer: live ? formatClock(live.remainingMs) : null,
+    intensities: live ? live.channels.map((_, i) => intensityText(live, i)) : [],
+    unit: live ? getWaveform(live.waveform).intensityLabel(live.params) : '',
     padContact,
   };
 }
@@ -582,9 +609,12 @@ function formatDate(d: Date): string {
   return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function formatTime(ms: number): string {
+/** 12-hour clock with seconds, e.g. "11:48:25 AM". */
+function formatTimeOfDay(ms: number): string {
   const d = new Date(ms);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  const h = d.getHours() % 12 || 12;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${h}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${d.getHours() < 12 ? 'AM' : 'PM'}`;
 }
 
 function contactLevel(t: Treatment): number {
