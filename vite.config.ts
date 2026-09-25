@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { marked } from 'marked';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
-import { PAGES, SITE_URL, navLinks } from './src/site.ts';
+import { MENU_TOGGLE, PAGES, SITE_URL, navLinks } from './src/site.ts';
 
 // Version shown in the app. A tag build in CI uses the pushed tag (e.g. "v1.2.3");
 // otherwise fall back to the nearest git tag, then to "dev".
@@ -54,7 +54,8 @@ const HEAD = `
 const header = (path: string) => `
     <header class="site-header">
       <a class="brand" href="/">Vectra Genisys Simulator</a>
-      <nav class="site-nav" aria-label="Site">${navLinks(path)}</nav>
+      ${MENU_TOGGLE}
+      <nav class="site-nav" id="site-nav" aria-label="Site">${navLinks(path)}</nav>
     </header>`;
 
 const footer = (path: string) => `

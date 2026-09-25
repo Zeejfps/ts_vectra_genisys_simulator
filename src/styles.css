@@ -1110,6 +1110,36 @@ details summary {
   }
 }
 
+.panel-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .panel-head .site-nav {
   margin-top: 12px;
+}
+
+/* Put the menu right under its button when it opens. */
+@media (max-width: 900px) {
+  .panel-head {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-head .site-nav {
+    order: 1;
+    margin: 4px 0 10px;
+  }
+
+  .panel-head p {
+    order: 2;
+  }
+
+  .panel-head .version {
+    display: block;
+    width: fit-content;
+    margin: 6px 0 0;
+  }
 }

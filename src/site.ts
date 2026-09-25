@@ -21,7 +21,7 @@ export const PAGES: SitePage[] = [
   {
     path: '/device-reference/',
     file: 'device-reference/index.html',
-    nav: 'Reference',
+    nav: 'Device reference',
     sources: ['device-reference/index.html', 'docs/device-reference.md'],
   },
   {
@@ -37,4 +37,28 @@ export function navLinks(current: string): string {
   return PAGES.map(
     (p) => `<a href="${p.path}"${p.path === current ? ' aria-current="page"' : ''}>${p.nav}</a>`,
   ).join('');
+}
+
+/** Button that opens the site nav on narrow screens (see `initMenu`). */
+export const MENU_TOGGLE = `<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path class="bars" d="M4 7h16M4 12h16M4 17h16" /><path class="close" d="M6 6l12 12M18 6 6 18" /></svg>
+</button>`;
+
+/** Wire up the menu toggle: it shows and hides the nav, and Escape closes it. */
+export function initMenu(): void {
+  const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
+  const nav = document.getElementById('site-nav');
+  if (!toggle || !nav) return;
+  const isOpen = () => toggle.getAttribute('aria-expanded') === 'true';
+  const setOpen = (open: boolean) => {
+    toggle.setAttribute('aria-expanded', String(open));
+    nav.classList.toggle('open', open);
+  };
+  toggle.addEventListener('click', () => setOpen(!isOpen()));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen()) {
+      setOpen(false);
+      toggle.focus();
+    }
+  });
 }

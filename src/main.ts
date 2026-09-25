@@ -1,7 +1,7 @@
 import './site.css';
 import './styles.css';
 import { Device } from './sim/device';
-import { navLinks } from './site';
+import { MENU_TOGGLE, initMenu, navLinks } from './site';
 import { Beeper } from './ui/audio';
 import { DeviceView } from './ui/deviceView';
 import { DeviceView3D } from './ui/deviceView3d';
@@ -15,9 +15,12 @@ app.innerHTML = `
   <main class="stage" aria-label="Vectra Genisys unit"></main>
   <aside class="panel">
     <header class="panel-head">
-      <h1>Vectra Genisys Simulator <span class="version">${__APP_VERSION__}</span></h1>
+      <div class="panel-title">
+        <h1>Vectra Genisys Simulator <span class="version">${__APP_VERSION__}</span></h1>
+        ${MENU_TOGGLE}
+      </div>
       <p>Interactive replica of the Vectra Genisys electrotherapy interface. Unofficial, for training and exploration only. Not a medical device.</p>
-      <nav class="site-nav" aria-label="Site">${navLinks('/')}</nav>
+      <nav class="site-nav" id="site-nav" aria-label="Site">${navLinks('/')}</nav>
     </header>
 
     <section class="panel-card unit">
@@ -63,6 +66,8 @@ app.innerHTML = `
       </details>
     </section>
   </aside>`;
+
+initMenu();
 
 const device = new Device();
 const beeper = new Beeper(() => device.settings.volume);

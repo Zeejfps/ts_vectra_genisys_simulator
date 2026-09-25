@@ -146,34 +146,82 @@ a {
   margin: 14px 0 0;
 }
 
-/* Phones: one row that scrolls sideways, so the nav doesn't push the page down. */
-@media (max-width: 600px) {
-  .site-nav {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    margin-inline: calc(-1 * max(16px, env(safe-area-inset-left)));
-    padding-inline: max(16px, env(safe-area-inset-left));
+.menu-toggle {
+  display: none;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--ctl-border);
+  border-radius: 10px;
+  background: var(--ctl-bg);
+  color: var(--text);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-toggle svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.menu-toggle[aria-expanded='true'] .bars,
+.menu-toggle[aria-expanded='false'] .close {
+  display: none;
+}
+
+/* Narrow screens: the nav collapses behind the menu button and opens as a list. */
+@media (max-width: 900px) {
+  .menu-toggle {
+    display: flex;
   }
 
-  .site-nav::-webkit-scrollbar {
+  #site-nav:not(.open) {
     display: none;
   }
 
-  .site-nav a {
-    flex: none;
-    min-height: 40px;
-    padding: 0 13px;
+  #site-nav.open {
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    background: var(--panel-bg);
   }
 
-  .site-footer .site-nav {
-    flex-wrap: wrap;
-    margin-inline: 0;
-    padding-inline: 0;
+  #site-nav.open a {
+    min-height: 48px;
+    padding: 0 16px;
+    border: none;
+    border-top: 1px solid var(--panel-border);
+    border-radius: 0;
+    background: none;
+    font-size: 16px;
+  }
+
+  #site-nav.open a:first-child {
+    border-top: none;
+  }
+
+  #site-nav.open a[aria-current='page'] {
+    box-shadow: inset 3px 0 0 var(--accent);
   }
 
   .site-header {
+    flex-wrap: wrap;
     padding-bottom: 12px;
+  }
+
+  .site-footer .site-nav a {
+    min-height: 40px;
+    padding: 0 13px;
   }
 }
 
