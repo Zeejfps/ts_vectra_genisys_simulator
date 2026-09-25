@@ -578,6 +578,9 @@
     background: var(--ui-bg);
     box-shadow: 0 -12px 32px rgb(0 0 0 / 0.14);
     animation: sheet-in 260ms cubic-bezier(0.2, 0, 0, 1);
+    /* Its own GPU layer, so sliding and dragging it moves pixels instead of
+       repainting it (and the monitor's canvases) every frame. */
+    will-change: transform;
   }
   .panel:not(.sheet-open) .workspace-sheet {
     display: none;

@@ -150,7 +150,7 @@ export function initWorkspace(): void {
     }
     panel.classList.add('sheet-closing');
     sheet.style.transition = SHEET_EASE;
-    sheet.style.transform = 'translateY(100%)';
+    sheet.style.transform = 'translate3d(0, 100%, 0)';
     let done = false;
     const finish = () => {
       if (done) return;
@@ -201,7 +201,7 @@ function bindSheetDrag(sheet: HTMLElement, close: () => void): void {
       if (dt > 0) drag.velocity = (y - drag.y) / dt;
       drag.y = y;
       drag.t = e.timeStamp;
-      sheet.style.transform = `translateY(${Math.max(0, dy)}px)`;
+      sheet.style.transform = `translate3d(0, ${Math.max(0, dy)}px, 0)`;
     },
     { passive: false },
   );

@@ -20,6 +20,14 @@ type Palette = { bg: string; grid: string; trace: string; dim: string; text: str
 
 const DARK = window.matchMedia('(prefers-color-scheme: dark)');
 
+/**
+ * Draw in software rather than on the GPU. The canvases are small, and a GPU
+ * canvas inside the sliding bottom sheet flickers on Android Chrome.
+ */
+function context(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
+  return canvas.getContext('2d', { willReadFrequently: true })!;
+}
+
 /** Set text only when it changes, so an unchanged monitor doesn't relayout every frame. */
 function setText(el: HTMLElement, text: string): void {
   if (el.textContent !== text) el.textContent = text;
@@ -131,7 +139,7 @@ export class Scope {
 
   private drawDetail(): void {
     const c = this.colors();
-    const ctx = this.detail.getContext('2d')!;
+    const ctx = context(this.detail);
     const { width: w, height: h } = this.detail;
 
     const d = this.device;
@@ -197,7 +205,7 @@ export class Scope {
     if (idle && this.stripIdle) return;
     this.stripIdle = idle;
     const c = this.colors();
-    const ctx = this.strip.getContext('2d')!;
+    const ctx = context(this.strip);
     const { width: w, height: h } = this.strip;
     this.drawGrid(ctx, w, h, c.bg, c.grid);
     const lane = h / CHANNELS.length;
