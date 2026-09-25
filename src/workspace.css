@@ -51,13 +51,23 @@
   max-width: 290px;
 }
 
-.workspace-body {
-  padding: 0 24px 22px;
-}
 .workspace-tabs {
   display: flex;
-  margin: 0 0 20px;
+  margin: 0 24px 20px;
   border-bottom: 1px solid var(--ui-line);
+}
+/* The panes and footer. A plain column beside the unit; a bottom sheet on phones. */
+.workspace-sheet {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+}
+.workspace-pane {
+  padding: 0 24px 22px;
+}
+.sheet-close,
+.sheet-scrim {
+  display: none;
 }
 .workspace-tabs button {
   position: relative;
@@ -73,9 +83,11 @@
   line-height: 1.3;
   cursor: pointer;
 }
-.workspace-tabs button:hover {
-  color: var(--ui-accent);
-  background: var(--ui-soft);
+@media (hover: hover) {
+  .workspace-tabs button:hover {
+    color: var(--ui-accent);
+    background: var(--ui-soft);
+  }
 }
 .workspace-tabs button[aria-selected='true'] {
   color: var(--ui-accent);
@@ -484,30 +496,96 @@
 }
 
 @media (max-width: 900px) {
-  .simulator-shell {
-    display: block;
-    height: auto;
-  }
-  .simulator-shell > #app {
-    height: auto;
-  }
+  /* The unit fills the screen under the header, with the tabs as a bar along
+     the bottom. A tab slides its pane up as a sheet over the lower part of
+     the unit, so nothing depends on scrolling the page, which a zoomed-in
+     unit would otherwise capture. */
   .panel-head {
     display: none;
   }
-  .workspace-body {
-    order: 3;
-    padding: 0;
+  /* Dims the unit behind the sheet; tapping it closes the sheet. */
+  .panel.sheet-open .sheet-scrim {
+    position: fixed;
+    inset: 0;
+    display: block;
+    background: rgb(0 0 0 / 0.28);
+    touch-action: none;
+    animation: scrim-in 220ms ease-out;
+  }
+  .panel.sheet-closing .sheet-scrim {
+    opacity: 0;
+    transition: opacity 220ms ease-out;
   }
   .workspace-tabs {
-    margin-bottom: 16px;
+    position: relative;
+    /* Over the sheet, so it slides down behind the bar. */
+    z-index: 1;
+    margin: 0;
+    padding: 0 max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(8px, env(safe-area-inset-left));
+    border-bottom: 0;
+    background: var(--ui-bg);
   }
   .workspace-tabs button {
-    min-height: 48px;
+    min-height: 52px;
     font-size: 13px;
   }
+  .workspace-tabs button[aria-selected='true']::after {
+    top: -1px;
+    bottom: auto;
+  }
+  /* Without the sheet open, no tab looks selected. */
+  .panel:not(.sheet-open) .workspace-tabs button[aria-selected='true'] {
+    color: var(--ui-muted);
+    font-weight: 550;
+  }
+  .panel:not(.sheet-open) .workspace-tabs button::after {
+    display: none;
+  }
+  .workspace-sheet {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    max-height: 62svh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--ui-line);
+    border-bottom: 0;
+    border-radius: 18px 18px 0 0;
+    background: var(--ui-bg);
+    box-shadow: 0 -12px 32px rgb(0 0 0 / 0.14);
+    animation: sheet-in 260ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .panel:not(.sheet-open) .workspace-sheet {
+    display: none;
+  }
+  .workspace-pane {
+    padding: 0 max(16px, env(safe-area-inset-right)) 20px max(16px, env(safe-area-inset-left));
+  }
+  /* A grab handle along the top edge: tap or drag it down to close the sheet. */
+  .sheet-close {
+    touch-action: none;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    background: var(--ui-bg);
+    cursor: pointer;
+  }
+  .sheet-close::before {
+    content: '';
+    width: 40px;
+    height: 5px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--ui-muted) 45%, transparent);
+  }
   .workspace-footer {
-    order: 4;
-    margin: 10px 0 0;
+    margin: 0;
     padding: 20px max(16px, env(safe-area-inset-left));
   }
   .workspace-footer > div {
@@ -554,5 +632,30 @@
   }
   .shortcut-list dt {
     font-size: 14px;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-sheet,
+  .sheet-scrim {
+    animation: none !important;
+  }
+}
+
+/* No keyboard shortcuts to show on a touch screen. */
+@media (hover: none) and (pointer: coarse) {
+  #tab-keys,
+  #pane-keys {
+    display: none;
   }
 }

@@ -1134,40 +1134,26 @@
 }
 
 @media (max-width: 900px) {
-  /* Single column: title first, then the unit, then the scope. */
+  /* Single column: the unit fills the space, with the workspace's tab bar below it. */
   #app {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    height: auto;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom));
-  }
-
-  .panel {
-    display: contents;
-  }
-
-  .panel > * {
-    margin: 0 max(16px, env(safe-area-inset-left));
-  }
-
-  .panel-head {
-    order: 0;
-    padding-top: 16px;
   }
 
   .stage {
-    order: 2;
-    width: 100%;
-    /* Match the faceplate's proportions so it fills the width without dead space above and below. */
-    aspect-ratio: 2 / 3;
-    max-height: 88vh;
-    max-height: 88svh;
-    border-block: 1px solid var(--panel-border);
+    flex: 1;
+    min-height: 0;
+    border-top: 1px solid var(--panel-border);
   }
 
-  .panel-card.scope {
-    order: 3;
+  .panel {
+    position: relative;
+    /* Above the unit's floating controls, which the sheet covers. */
+    z-index: 3;
+    overflow: visible;
+    padding: 0;
+    border-left: 0;
+    border-top: 1px solid var(--panel-border);
   }
 
   .unit-controls {
