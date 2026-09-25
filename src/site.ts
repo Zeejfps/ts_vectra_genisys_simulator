@@ -16,6 +16,7 @@ export interface SitePage {
 
 export const PAGES: SitePage[] = [
   { path: '/', file: 'index.html', nav: 'Simulator', sources: ['index.html', 'src'] },
+  { path: '/how-to-use/', file: 'how-to-use/index.html', nav: 'How to use', sources: ['how-to-use/index.html'] },
   { path: '/about/', file: 'about/index.html', nav: 'About', sources: ['about/index.html'] },
   { path: '/faq/', file: 'faq/index.html', nav: 'FAQ', sources: ['faq/index.html'] },
   {

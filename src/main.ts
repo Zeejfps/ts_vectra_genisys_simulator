@@ -10,6 +10,24 @@ import type { UnitView } from './ui/unitView';
 
 const SPEEDS = [1, 10, 60] as const;
 
+const CLOCK_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>`;
+const POWER_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v7" /><path d="M7.4 7.2a7 7 0 1 0 9.2 0" /></svg>`;
+const INTERRUPT_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.3 3h7.4L21 8.3v7.4L15.7 21H8.3L3 15.7V8.3z" /><path d="M12 7.5v5.5" /><path d="M12 16.5v.01" /></svg>`;
+
+// Power, timer speed and the patient interrupt switch, each floating over a corner of the unit.
+const UNIT_CONTROLS = `
+  <div class="unit-controls" role="group" aria-label="Unit controls">
+    <button class="power-switch" role="switch" aria-checked="false" aria-label="Power" title="Power (O)" data-action="power">
+      ${POWER_ICON}<span class="track"><span class="thumb"></span></span>
+    </button>
+    <button class="tool speed" aria-label="Timer speed 1×" title="Timer speed: press to cycle 1×, 10×, 60×" data-action="speed">
+      ${CLOCK_ICON}<span class="speed-value">1×</span>
+    </button>
+    <button class="tool interrupt" aria-label="Patient Interrupt Switch" title="Patient Interrupt Switch (I)" data-action="interrupt">
+      ${INTERRUPT_ICON}
+    </button>
+  </div>`;
+
 const app = document.querySelector<HTMLElement>('#app')!;
 app.innerHTML = `
   <main class="stage" aria-label="Vectra Genisys unit"></main>
@@ -23,48 +41,7 @@ app.innerHTML = `
       <nav class="site-nav" id="site-nav" aria-label="Site">${navLinks('/')}</nav>
     </header>
 
-    <section class="panel-card unit">
-      <h2>Unit</h2>
-      <div class="row">
-        <button class="ctl power" data-action="power"><span class="dot"></span><span class="label">Power On</span></button>
-        <button class="ctl" data-action="interrupt" title="Patient Interrupt Switch (I)">Patient Interrupt Switch</button>
-      </div>
-      <div class="row">
-        <span class="row-label">Timer speed</span>
-        <div class="seg" role="radiogroup" aria-label="Timer speed">
-          ${SPEEDS.map((s) => `<button role="radio" data-speed="${s}" aria-checked="${s === 1}">${s}×</button>`).join('')}
-        </div>
-      </div>
-    </section>
-
     <section class="panel-card scope"></section>
-
-    <section class="panel-card help">
-      <details>
-        <summary><h2>How to use</h2></summary>
-        <ol class="guide">
-          <li>Turn the unit on with <b>Power On</b> (the real switch is on the back panel).</li>
-          <li>Press <b>Electrotherapy</b>, then a waveform. Setup channels show in the yellow status area.</li>
-          <li><b>Edit</b> changes parameters. Pressing a setting cycles its options. Number settings open an editor that uses the arrow keys.</li>
-          <li>Turn the <b>intensity knob</b> by dragging it, scrolling over it, or using the ↑/↓ keys.</li>
-          <li><b>Start</b>, <b>Pause</b> and <b>Stop</b> control the framed channel. <b>Select Channel</b> on Home moves the frame.</li>
-          <li>Press <b>Home</b> and <b>Back</b> together to open Operator Utilities.</li>
-        </ol>
-      </details>
-      <details>
-        <summary><h2>Keyboard</h2></summary>
-        <dl class="keys">
-          <dt>1–5</dt><dd>Left soft keys</dd>
-          <dt>6–0</dt><dd>Right soft keys</dd>
-          <dt>↑ / ↓</dt><dd>Intensity knob</dd>
-          <dt>S · P · X</dt><dd>Start · Pause · Stop</dd>
-          <dt>H · B · L</dt><dd>Home · Back · Library</dd>
-          <dt>U</dt><dd>Operator Utilities (Home + Back)</dd>
-          <dt>I</dt><dd>Patient Interrupt Switch</dd>
-          <dt>O</dt><dd>Power</dd>
-        </dl>
-      </details>
-    </section>
   </aside>`;
 
 initMenu();
@@ -91,9 +68,10 @@ try {
   stage.replaceChildren();
   view = new DeviceView(stage, device);
 }
+stage.insertAdjacentHTML('beforeend', UNIT_CONTROLS);
 const scope = new Scope(app.querySelector('.scope')!, device);
 
-let speed = 1;
+let speed: (typeof SPEEDS)[number] = 1;
 let dirty = true;
 device.onChange = () => {
   dirty = true;
@@ -101,20 +79,20 @@ device.onChange = () => {
 
 // ---------- panel controls ----------
 
-const powerBtn = app.querySelector<HTMLButtonElement>('[data-action="power"]')!;
+const powerBtn = stage.querySelector<HTMLButtonElement>('[data-action="power"]')!;
 powerBtn.addEventListener('click', () => device.togglePower());
-app.querySelector('[data-action="interrupt"]')!.addEventListener('click', () => device.patientInterrupt());
-for (const btn of app.querySelectorAll<HTMLButtonElement>('[data-speed]')) {
-  btn.addEventListener('click', () => {
-    speed = Number(btn.dataset.speed);
-    for (const b of app.querySelectorAll('[data-speed]')) b.setAttribute('aria-checked', String(b === btn));
-  });
-}
+stage.querySelector('[data-action="interrupt"]')!.addEventListener('click', () => device.patientInterrupt());
+
+const speedBtn = stage.querySelector<HTMLButtonElement>('[data-action="speed"]')!;
+speedBtn.addEventListener('click', () => {
+  speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length];
+  speedBtn.querySelector('.speed-value')!.textContent = `${speed}×`;
+  speedBtn.setAttribute('aria-label', `Timer speed ${speed}×`);
+  speedBtn.classList.toggle('fast', speed !== 1);
+});
 
 function syncPanel(): void {
-  const on = device.power !== 'off';
-  powerBtn.classList.toggle('on', on);
-  powerBtn.querySelector('.label')!.textContent = on ? 'Power Off' : 'Power On';
+  powerBtn.setAttribute('aria-checked', String(device.power !== 'off'));
 }
 
 // ---------- keyboard ----------

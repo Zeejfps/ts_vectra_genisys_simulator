@@ -347,6 +347,25 @@ a {
   min-width: 320px;
 }
 
+/* Keyboard shortcuts. */
+.prose .keys {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 16px;
+  align-items: baseline;
+}
+
+.prose .keys dt {
+  margin: 0;
+  font-weight: 700;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  white-space: nowrap;
+}
+
+.prose .keys dd {
+  color: var(--text);
+}
+
 /* Links to the other pages. */
 .prose .cards {
   display: grid;
