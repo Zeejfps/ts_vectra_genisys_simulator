@@ -24,7 +24,7 @@ const FRAME_MARGIN = 1.05;
 const PRESS_TIME = 0.06;
 /** A tap from the keyboard or screen reader holds the key down this long (ms). */
 const TAP_MS = 120;
-/** Fingers also hit a control this many CSS px outside it (keys are small on phones). */
+/** Fingers also hit a control this many screen px outside it (keys are small on phones). */
 const TOUCH_SLOP = 12;
 /** Seen head-on a press barely moves, so pressed keys also darken this much. */
 const PRESS_SHADE = 0.3;
@@ -320,23 +320,43 @@ export class DeviceView3D implements UnitView {
 
   // ---------- input ----------
 
-  /** The control at a client point, allowing some slop around it for touches. */
-  private hitTarget(clientX: number, clientY: number, touch: boolean): string | null {
-    const id = this.hit(clientX, clientY);
+  /**
+   * A page point as CSS px from the canvas's top left. Works from page
+   * coordinates and the layout offsets rather than clientX and
+   * getBoundingClientRect: once the page is pinch-zoomed, mobile browsers
+   * (iOS Safari especially) don't agree on which viewport those two are
+   * relative to, and taps land on the wrong control or none.
+   */
+  private toCanvas(pageX: number, pageY: number): { x: number; y: number } {
+    let x = pageX;
+    let y = pageY;
+    for (let el: HTMLElement | null = this.renderer.domElement; el; el = el.offsetParent as HTMLElement | null) {
+      x -= el.offsetLeft + el.clientLeft;
+      y -= el.offsetTop + el.clientTop;
+    }
+    return { x, y };
+  }
+
+  /** The control at a page point, allowing some slop around it for touches. */
+  private hitTarget(pageX: number, pageY: number, touch: boolean): string | null {
+    const id = this.hit(pageX, pageY);
     if (id || !touch) return id;
+    // Fingers don't shrink when the page is zoomed in, so keep the slop constant on screen.
+    const slop = TOUCH_SLOP / (window.visualViewport?.scale ?? 1);
     for (let i = 0; i < 8; i++) {
       const a = (i / 8) * 2 * Math.PI;
-      const near = this.hit(clientX + TOUCH_SLOP * Math.cos(a), clientY + TOUCH_SLOP * Math.sin(a));
+      const near = this.hit(pageX + slop * Math.cos(a), pageY + slop * Math.sin(a));
       if (near) return near;
     }
     return null;
   }
 
-  /** The control under a client point: 'softkey:3', 'hw:stop', 'knob' or null. */
-  private hit(clientX: number, clientY: number): string | null {
+  /** The control under a page point: 'softkey:3', 'hw:stop', 'knob' or null. */
+  private hit(pageX: number, pageY: number): string | null {
     if (!this.model) return null;
-    const rect = this.renderer.domElement.getBoundingClientRect();
-    const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    const canvas = this.renderer.domElement;
+    const { x, y } = this.toCanvas(pageX, pageY);
+    const ndc = new THREE.Vector2((x / canvas.clientWidth) * 2 - 1, -(y / canvas.clientHeight) * 2 + 1);
     this.raycaster.setFromCamera(ndc, this.camera);
     const [first] = this.raycaster.intersectObject(this.model, true);
     for (let obj: THREE.Object3D | null = first?.object ?? null; obj; obj = obj.parent) {
@@ -351,14 +371,10 @@ export class DeviceView3D implements UnitView {
     let knobDrag: { last: number; carry: number } | null = null;
     let heldHw: string | null = null;
 
-    const knobCentre = () => {
-      const p = this.knob!.getWorldPosition(new THREE.Vector3()).project(this.camera);
-      const rect = canvas.getBoundingClientRect();
-      return { x: rect.left + ((p.x + 1) / 2) * rect.width, y: rect.top + ((1 - p.y) / 2) * rect.height };
-    };
     const angleAt = (e: PointerEvent) => {
-      const c = knobCentre();
-      return Math.atan2(e.clientY - c.y, e.clientX - c.x) / DEG;
+      const p = this.knob!.getWorldPosition(new THREE.Vector3()).project(this.camera);
+      const { x, y } = this.toCanvas(e.pageX, e.pageY);
+      return Math.atan2(y - ((1 - p.y) / 2) * canvas.clientHeight, x - ((p.x + 1) / 2) * canvas.clientWidth) / DEG;
     };
 
     // Touches that start on a control are ours; anywhere else they scroll the page.
@@ -366,13 +382,13 @@ export class DeviceView3D implements UnitView {
       'touchstart',
       (e) => {
         const t = e.touches[0];
-        if (t && this.hitTarget(t.clientX, t.clientY, true)) e.preventDefault();
+        if (t && this.hitTarget(t.pageX, t.pageY, true)) e.preventDefault();
       },
       { passive: false },
     );
 
     canvas.addEventListener('pointerdown', (e) => {
-      const id = this.hitTarget(e.clientX, e.clientY, e.pointerType === 'touch');
+      const id = this.hitTarget(e.pageX, e.pageY, e.pointerType === 'touch');
       if (!id) return;
       e.preventDefault();
       canvas.setPointerCapture(e.pointerId);
@@ -404,7 +420,7 @@ export class DeviceView3D implements UnitView {
           this.device.turnKnob(detents);
         }
       } else if (e.pointerType === 'mouse') {
-        const id = this.hit(e.clientX, e.clientY);
+        const id = this.hit(e.pageX, e.pageY);
         canvas.style.cursor = id === 'knob' ? 'grab' : id ? 'pointer' : 'default';
       }
     });
@@ -422,7 +438,7 @@ export class DeviceView3D implements UnitView {
     canvas.addEventListener(
       'wheel',
       (e) => {
-        if (this.hit(e.clientX, e.clientY) !== 'knob') return;
+        if (this.hit(e.pageX, e.pageY) !== 'knob') return;
         e.preventDefault();
         const detents = e.deltaY < 0 ? 1 : -1;
         this.nudgeKnob(detents);
