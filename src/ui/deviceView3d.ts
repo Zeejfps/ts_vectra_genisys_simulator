@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { CSS3DObject, CSS3DRenderer } from 'three/addons/renderers/CSS3DRenderer.js';
 import modelUrl from '../assets/vectra_genisys.glb?url';
 import type { Device } from '../sim/device';
 import { renderLcd } from './lcd';
@@ -12,7 +11,7 @@ import { DEGREES_PER_DETENT, DRAG_SLOP, type HardwareKey, type UnitView, hardwar
 // Controls in the model are nodes named softkey_0..9, key_<name> and knob, each
 // with extras (userData) giving sim_id, action and travel_mm. A press moves the
 // node along its local -Y; the knob turns about its local Y. The HTML LCD from
-// lcd.ts is laid over the lcd_screen quad with a CSS3D transform so its text
+// lcd.ts is laid over the lcd_screen quad with a CSS transform so its text
 // stays crisp. The face node's frame_box extra is the region the camera frames.
 
 const DEG = Math.PI / 180;
@@ -56,7 +55,7 @@ export class DeviceView3D implements UnitView {
   readonly root: HTMLElement;
   private readonly lcd: HTMLElement;
   private readonly renderer: THREE.WebGLRenderer;
-  private readonly css = new CSS3DRenderer();
+  private readonly overlay = document.createElement('div');
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(FOV, 1, 0.01, 10);
   private readonly raycaster = new THREE.Raycaster();
@@ -67,6 +66,8 @@ export class DeviceView3D implements UnitView {
   private knob: THREE.Object3D | null = null;
   private knobRest = new THREE.Quaternion();
   private led: THREE.MeshStandardMaterial | null = null;
+  /** The LCD glass's top left, top right and bottom left corners in world space. */
+  private lcdCorners: THREE.Vector3[] = [];
   private ledState: LedState = 'standby';
 
   /** The framed region in face space: x right, -z up the face, y out of it. */
@@ -99,8 +100,8 @@ export class DeviceView3D implements UnitView {
     this.renderer.domElement.className = 'device3d-canvas';
     this.root.appendChild(this.renderer.domElement);
 
-    this.css.domElement.className = 'device3d-overlay';
-    this.root.appendChild(this.css.domElement);
+    this.overlay.className = 'device3d-overlay';
+    this.root.appendChild(this.overlay);
 
     this.lcd = document.createElement('div');
     this.lcd.className = 'lcd';
@@ -236,12 +237,14 @@ export class DeviceView3D implements UnitView {
     // The glass isn't 3:4 like the flat view's panel; the status area absorbs the extra height.
     this.lcd.style.width = `${info.dom_width_px}px`;
     this.lcd.style.height = `${info.dom_height_px}px`;
-    const overlay = new CSS3DObject(this.lcd);
-    overlay.element.style.pointerEvents = 'none';
-    overlay.scale.setScalar(info.width_mm / 1000 / info.dom_width_px);
-    overlay.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-    overlay.position.set(0, 0.0002, 0);
-    screen.add(overlay);
+    const w = info.width_mm / 1000 / 2;
+    const h = (w * info.dom_height_px) / info.dom_width_px;
+    this.lcdCorners = [
+      [-w, -h],
+      [w, -h],
+      [-w, h],
+    ].map(([x, z]) => screen.localToWorld(new THREE.Vector3(x, 0, z)));
+    this.overlay.appendChild(this.lcd);
 
     const [x0, y0, z0, x1, y1, z1] = (model.getObjectByName('face')!.userData as { frame_box: number[] }).frame_box;
     this.framed.set(new THREE.Vector3(x0, y0, z0), new THREE.Vector3(x1, y1, z1));
@@ -269,7 +272,6 @@ export class DeviceView3D implements UnitView {
     const { width, height } = this.host.getBoundingClientRect();
     if (!width || !height) return;
     this.renderer.setSize(width, height);
-    this.css.setSize(width, height);
     this.camera.aspect = width / height;
     this.applyViewport();
     this.fit();
@@ -290,7 +292,33 @@ export class DeviceView3D implements UnitView {
     this.needsRender = false;
     if (this.led) this.updateLed(now);
     this.renderer.render(this.scene, this.camera);
-    this.css.render(this.scene, this.camera);
+    this.placeLcd();
+  }
+
+  /**
+   * Map the LCD element onto the glass as drawn, with a flat 2D transform. The
+   * camera looks straight at the face, so the glass projects to a rectangle.
+   * (CSS3DRenderer's nested preserve-3d layers did this before, but WebKit, and
+   * so every iOS browser, flattened them and left the glass blank.)
+   */
+  private placeLcd(): void {
+    if (!this.lcdCorners.length) return;
+    const canvas = this.renderer.domElement;
+    const [topLeft, topRight, bottomLeft] = this.lcdCorners.map((c) => {
+      const p = c.clone().project(this.camera);
+      return { x: ((p.x + 1) / 2) * canvas.clientWidth, y: ((1 - p.y) / 2) * canvas.clientHeight };
+    });
+    const w = this.lcd.offsetWidth;
+    const h = this.lcd.offsetHeight;
+    const m = [
+      (topRight.x - topLeft.x) / w,
+      (topRight.y - topLeft.y) / w,
+      (bottomLeft.x - topLeft.x) / h,
+      (bottomLeft.y - topLeft.y) / h,
+      topLeft.x,
+      topLeft.y,
+    ];
+    this.lcd.style.transform = `matrix(${m.join(',')})`;
   }
 
   private updateLed(now: number): void {

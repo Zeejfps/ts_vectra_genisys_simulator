@@ -297,7 +297,15 @@
 }
 
 .device3d-overlay {
+  overflow: hidden;
   pointer-events: none;
+}
+
+/* Placed over the glass by DeviceView3D.placeLcd. */
+.device3d-overlay .lcd {
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
 }
 
 .sr-only {
